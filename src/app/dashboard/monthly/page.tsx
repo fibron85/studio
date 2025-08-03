@@ -9,8 +9,8 @@ import { Lightbulb } from 'lucide-react';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
-const calculateNet = (amount: number, { salikToll = 0, airportFee = 0, commission = 0 }: { salikToll?: number, airportFee?: number, commission?: number }) => {
-    return amount - salikToll - airportFee - commission;
+const calculateNet = (amount: number, { salikToll = 0, airportFee = 0, commission = 0, bookingFee = 0 }: { salikToll?: number, airportFee?: number, commission?: number, bookingFee?: number }) => {
+    return amount - salikToll - airportFee - commission - bookingFee;
 }
 
 export default function MonthlyReportPage() {

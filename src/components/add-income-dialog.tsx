@@ -30,14 +30,41 @@ import { Popover, PopoverTrigger, PopoverContent } from './ui/popover';
 import { Calendar } from './ui/calendar';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import type { PickupLocation } from '@/lib/types';
+
+const pickupLocations: { value: PickupLocation; label: string }[] = [
+    { value: 'airport_t1', label: 'Airport T1' },
+    { value: 'airport_t2', label: 'Airport T2' },
+    { value: 'airport_t3', label: 'Airport T3' },
+    { value: 'dubai_mall', label: 'Dubai Mall' },
+    { value: 'atlantis', label: 'Atlantis' },
+    { value: 'global_village', label: 'Global Village' },
+    { value: 'bolt_online_booking', label: 'Bolt Online Booking' },
+    { value: 'otp_booking_airport', label: 'OTP Booking Airport' },
+    { value: 'otp_booking_global_village', label: 'OTP Booking Global Village' },
+    { value: 'other', label: 'Other' },
+];
 
 const incomeSchema = z.object({
   platform: z.enum(['uber', 'careem', 'bolt'], { required_error: "Please select a platform."}),
+  pickupLocation: z.enum([
+    "airport_t1",
+    "airport_t2",
+    "airport_t3",
+    "dubai_mall",
+    "atlantis",
+    "global_village",
+    "bolt_online_booking",
+    "otp_booking_airport",
+    "otp_booking_global_village",
+    "other",
+  ]).optional(),
   amount: z.coerce.number().min(0.01, 'Amount must be greater than 0'),
   distance: z.coerce.number().optional(),
   date: z.date(),
   salikToll: z.coerce.number().optional(),
   airportFee: z.coerce.number().optional(),
+  bookingFee: z.coerce.number().optional(),
   commission: z.coerce.number().optional(),
 });
 
@@ -51,11 +78,13 @@ export default function AddIncomeDialog() {
     defaultValues: {
       date: new Date(),
       commission: 0,
+      bookingFee: 0,
     },
   });
 
   const platform = form.watch("platform");
   const amount = form.watch("amount");
+  const pickupLocation = form.watch("pickupLocation");
 
   useEffect(() => {
     if (platform === 'bolt' && amount > 0) {
@@ -66,10 +95,34 @@ export default function AddIncomeDialog() {
     }
   }, [platform, amount, form]);
 
+  useEffect(() => {
+    if (platform === 'bolt' && pickupLocation) {
+      let fee = 0;
+      switch (pickupLocation) {
+        case 'otp_booking_airport':
+          fee = 25;
+          break;
+        case 'dubai_mall':
+        case 'global_village':
+        case 'otp_booking_global_village':
+            fee = 16;
+            break;
+        case 'bolt_online_booking':
+          fee = 50;
+          break;
+        default:
+          fee = 0;
+      }
+      form.setValue('bookingFee', fee);
+    } else {
+      form.setValue('bookingFee', 0);
+    }
+  }, [platform, pickupLocation, form]);
+
 
   const onSubmit = (data: IncomeFormValues) => {
     addIncome({ ...data, date: data.date.toISOString() });
-    form.reset({ date: new Date(), amount: undefined, distance: undefined, salikToll: undefined, airportFee: undefined, commission: 0 });
+    form.reset({ date: new Date(), amount: undefined, distance: undefined, salikToll: undefined, airportFee: undefined, bookingFee: 0, commission: 0 });
     setOpen(false);
   };
 
@@ -88,26 +141,49 @@ export default function AddIncomeDialog() {
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-2">
-          <div className="space-y-2">
-            <Label htmlFor="platform">Platform</Label>
-            <Controller
-              control={form.control}
-              name="platform"
-              render={({ field }) => (
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a platform" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="uber">Uber</SelectItem>
-                    <SelectItem value="careem">Careem</SelectItem>
-                    <SelectItem value="bolt">Bolt</SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
-            />
-            {form.formState.errors.platform && <p className="text-sm font-medium text-destructive">{form.formState.errors.platform.message}</p>}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="platform">Platform</Label>
+              <Controller
+                control={form.control}
+                name="platform"
+                render={({ field }) => (
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a platform" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="uber">Uber</SelectItem>
+                      <SelectItem value="careem">Careem</SelectItem>
+                      <SelectItem value="bolt">Bolt</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {form.formState.errors.platform && <p className="text-sm font-medium text-destructive">{form.formState.errors.platform.message}</p>}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="pickupLocation">Pickup Location</Label>
+              <Controller
+                control={form.control}
+                name="pickupLocation"
+                render={({ field }) => (
+                  <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!platform}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a location" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {pickupLocations.map(loc => (
+                        <SelectItem key={loc.value} value={loc.value}>{loc.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </div>
           </div>
+          
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -121,11 +197,18 @@ export default function AddIncomeDialog() {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 gap-4">
+             <div className="space-y-2">
+                <Label htmlFor="bookingFee">Booking Fee</Label>
+                <Input id="bookingFee" type="number" step="0.01" placeholder="10.00" {...form.register('bookingFee')} readOnly={platform === 'bolt'} />
+            </div>
             <div className="space-y-2">
               <Label htmlFor="commission">Commission</Label>
               <Input id="commission" type="number" step="0.01" placeholder="5.00" {...form.register('commission')} readOnly={platform === 'bolt'} />
             </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="salikToll">Salik Toll</Label>
               <Input id="salikToll" type="number" step="0.01" placeholder="4.00" {...form.register('salikToll')} />
