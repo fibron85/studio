@@ -54,6 +54,8 @@ export default function AddIncomeDialog() {
     resolver: zodResolver(incomeSchema),
     defaultValues: {
       date: new Date(),
+      amount: 0,
+      distance: 0,
       commission: 0,
       bookingFee: 0,
       airportFee: 0,
@@ -71,14 +73,11 @@ export default function AddIncomeDialog() {
 
   useEffect(() => {
     if (platform === 'bolt') {
-      if (amount > 0) {
-        const commission = amount * 0.2;
-        form.setValue('commission', parseFloat(commission.toFixed(2)));
-      } else {
-        form.setValue('commission', 0);
-      }
-      form.setValue('airportFee', 20);
+        const commissionValue = amount * 0.2;
+        form.setValue('commission', parseFloat(commissionValue.toFixed(2)));
+        form.setValue('airportFee', 20);
     } else {
+      // Reset fields when platform is not Bolt
       form.setValue('commission', 0);
       form.setValue('airportFee', 0);
       form.setValue('bookingFee', 0);
@@ -98,7 +97,7 @@ export default function AddIncomeDialog() {
 
   const onSubmit = (data: IncomeFormValues) => {
     addIncome({ ...data, date: data.date.toISOString() });
-    form.reset({ date: new Date(), amount: undefined, distance: undefined, platform: undefined, salikToll: 0, airportFee: 0, bookingFee: 0, commission: 0, fuelCost: 0, pickupLocation: undefined });
+    form.reset({ date: new Date(), amount: 0, distance: 0, platform: undefined, salikToll: 0, airportFee: 0, bookingFee: 0, commission: 0, fuelCost: 0, pickupLocation: undefined });
     setOpen(false);
   };
 
@@ -195,7 +194,7 @@ export default function AddIncomeDialog() {
                     <Label htmlFor="airportFee">Airport Fee</Label>
                     <Input id="airportFee" type="number" step="0.01" placeholder="20.00" {...form.register('airportFee')} readOnly />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2 col-span-2">
                     <Label htmlFor="commission">Commission</Label>
                     <Input id="commission" type="number" step="0.01" placeholder="5.00" {...form.register('commission')} readOnly />
                 </div>
