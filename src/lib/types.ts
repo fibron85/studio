@@ -23,6 +23,7 @@ export interface Income {
   bookingFee?: number;
   commission?: number;
   distance?: number;
+  fuelCost?: number;
 }
 
 export interface Goal {

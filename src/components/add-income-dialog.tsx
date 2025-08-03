@@ -66,6 +66,7 @@ const incomeSchema = z.object({
   airportFee: z.coerce.number().optional(),
   bookingFee: z.coerce.number().optional(),
   commission: z.coerce.number().optional(),
+  fuelCost: z.coerce.number().optional(),
 });
 
 type IncomeFormValues = z.infer<typeof incomeSchema>;
@@ -80,12 +81,14 @@ export default function AddIncomeDialog() {
       commission: 0,
       bookingFee: 0,
       airportFee: 0,
+      fuelCost: 0,
     },
   });
 
   const platform = form.watch("platform");
   const amount = form.watch("amount");
   const pickupLocation = form.watch("pickupLocation");
+  const distance = form.watch("distance");
 
   useEffect(() => {
     if (platform === 'bolt') {
@@ -128,10 +131,19 @@ export default function AddIncomeDialog() {
     }
   }, [platform, pickupLocation, form]);
 
+  useEffect(() => {
+    if (distance && distance > 0) {
+      const fuelCost = distance * 0.29;
+      form.setValue('fuelCost', parseFloat(fuelCost.toFixed(2)));
+    } else {
+      form.setValue('fuelCost', 0);
+    }
+  }, [distance, form]);
+
 
   const onSubmit = (data: IncomeFormValues) => {
     addIncome({ ...data, date: data.date.toISOString() });
-    form.reset({ date: new Date(), amount: undefined, distance: undefined, salikToll: undefined, airportFee: 0, bookingFee: 0, commission: 0 });
+    form.reset({ date: new Date(), amount: undefined, distance: undefined, salikToll: undefined, airportFee: 0, bookingFee: 0, commission: 0, fuelCost: 0 });
     setOpen(false);
   };
 
@@ -205,6 +217,17 @@ export default function AddIncomeDialog() {
               <Input id="distance" type="number" step="0.1" placeholder="15.2" {...form.register('distance')} />
             </div>
           </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+                <Label htmlFor="fuelCost">Fuel Cost</Label>
+                <Input id="fuelCost" type="number" step="0.01" placeholder="4.41" {...form.register('fuelCost')} readOnly />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="salikToll">Salik Toll</Label>
+              <Input id="salikToll" type="number" step="0.01" placeholder="4.00" {...form.register('salikToll')} />
+            </div>
+          </div>
           
           {platform === 'bolt' && (
             <div className="grid grid-cols-2 gap-4">
@@ -223,10 +246,6 @@ export default function AddIncomeDialog() {
             <div className="space-y-2">
                 <Label htmlFor="commission">Commission</Label>
                 <Input id="commission" type="number" step="0.01" placeholder="5.00" {...form.register('commission')} readOnly={platform === 'bolt'} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="salikToll">Salik Toll</Label>
-              <Input id="salikToll" type="number" step="0.01" placeholder="4.00" {...form.register('salikToll')} />
             </div>
           </div>
           
