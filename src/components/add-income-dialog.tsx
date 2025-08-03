@@ -79,6 +79,7 @@ export default function AddIncomeDialog() {
       date: new Date(),
       commission: 0,
       bookingFee: 0,
+      airportFee: 0,
     },
   });
 
@@ -87,11 +88,19 @@ export default function AddIncomeDialog() {
   const pickupLocation = form.watch("pickupLocation");
 
   useEffect(() => {
-    if (platform === 'bolt' && amount > 0) {
-      const commission = amount * 0.2;
-      form.setValue('commission', parseFloat(commission.toFixed(2)));
-    } else if (platform !== 'bolt') {
+    if (platform === 'bolt') {
+      if (amount > 0) {
+        const commission = amount * 0.2;
+        form.setValue('commission', parseFloat(commission.toFixed(2)));
+      } else {
         form.setValue('commission', 0);
+      }
+      form.setValue('airportFee', 20);
+    } else {
+        form.setValue('commission', 0);
+        form.setValue('airportFee', 0);
+        form.setValue('bookingFee', 0);
+        form.setValue('pickupLocation', undefined);
     }
   }, [platform, amount, form]);
 
@@ -114,7 +123,7 @@ export default function AddIncomeDialog() {
           fee = 0;
       }
       form.setValue('bookingFee', fee);
-    } else {
+    } else if (platform !== 'bolt') {
       form.setValue('bookingFee', 0);
     }
   }, [platform, pickupLocation, form]);
@@ -122,7 +131,7 @@ export default function AddIncomeDialog() {
 
   const onSubmit = (data: IncomeFormValues) => {
     addIncome({ ...data, date: data.date.toISOString() });
-    form.reset({ date: new Date(), amount: undefined, distance: undefined, salikToll: undefined, airportFee: undefined, bookingFee: 0, commission: 0 });
+    form.reset({ date: new Date(), amount: undefined, distance: undefined, salikToll: undefined, airportFee: 0, bookingFee: 0, commission: 0 });
     setOpen(false);
   };
 
@@ -141,7 +150,6 @@ export default function AddIncomeDialog() {
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-2">
-          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="platform">Platform</Label>
               <Controller
@@ -162,14 +170,15 @@ export default function AddIncomeDialog() {
               />
               {form.formState.errors.platform && <p className="text-sm font-medium text-destructive">{form.formState.errors.platform.message}</p>}
             </div>
-
-            <div className="space-y-2">
+          
+          {platform === 'bolt' && (
+             <div className="space-y-2">
               <Label htmlFor="pickupLocation">Pickup Location</Label>
               <Controller
                 control={form.control}
                 name="pickupLocation"
                 render={({ field }) => (
-                  <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!platform}>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select a location" />
                     </SelectTrigger>
@@ -182,7 +191,7 @@ export default function AddIncomeDialog() {
                 )}
               />
             </div>
-          </div>
+          )}
           
 
           <div className="grid grid-cols-2 gap-4">
@@ -196,26 +205,28 @@ export default function AddIncomeDialog() {
               <Input id="distance" type="number" step="0.1" placeholder="15.2" {...form.register('distance')} />
             </div>
           </div>
+          
+          {platform === 'bolt' && (
+            <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                    <Label htmlFor="bookingFee">Booking Fee</Label>
+                    <Input id="bookingFee" type="number" step="0.01" placeholder="10.00" {...form.register('bookingFee')} readOnly />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="airportFee">Airport Fee</Label>
+                    <Input id="airportFee" type="number" step="0.01" placeholder="20.00" {...form.register('airportFee')} readOnly />
+                </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-4">
-             <div className="space-y-2">
-                <Label htmlFor="bookingFee">Booking Fee</Label>
-                <Input id="bookingFee" type="number" step="0.01" placeholder="10.00" {...form.register('bookingFee')} readOnly={platform === 'bolt'} />
-            </div>
             <div className="space-y-2">
-              <Label htmlFor="commission">Commission</Label>
-              <Input id="commission" type="number" step="0.01" placeholder="5.00" {...form.register('commission')} readOnly={platform === 'bolt'} />
+                <Label htmlFor="commission">Commission</Label>
+                <Input id="commission" type="number" step="0.01" placeholder="5.00" {...form.register('commission')} readOnly={platform === 'bolt'} />
             </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="salikToll">Salik Toll</Label>
               <Input id="salikToll" type="number" step="0.01" placeholder="4.00" {...form.register('salikToll')} />
-            </div>
-             <div className="space-y-2">
-              <Label htmlFor="airportFee">Airport Fee</Label>
-              <Input id="airportFee" type="number" step="0.01" placeholder="10.00" {...form.register('airportFee')} />
             </div>
           </div>
           
