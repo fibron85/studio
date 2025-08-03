@@ -38,7 +38,7 @@ const incomeSchema = z.object({
   distance: z.coerce.number().optional(),
   date: z.date(),
   pickupLocation: z.enum(["airport_t1", "airport_t2", "airport_t3", "dubai_mall", "atlantis_the_palm", "global_village", "other"]).optional(),
-  salikToll: z.coerce.number().optional(),
+  salikFee: z.coerce.number().optional(),
   airportFee: z.coerce.number().optional(),
   bookingFee: z.coerce.number().optional(),
   commission: z.coerce.number().optional(),
@@ -60,7 +60,7 @@ export default function AddIncomeDialog() {
       bookingFee: 0,
       airportFee: 0,
       fuelCost: 0,
-      salikToll: 0,
+      salikFee: 0,
     },
   });
 
@@ -69,7 +69,7 @@ export default function AddIncomeDialog() {
   const distance = form.watch("distance") || 0;
   
   const watchedValues = form.watch();
-  const netIncome = (watchedValues.amount || 0) - (watchedValues.salikToll || 0) - (watchedValues.airportFee || 0) - (watchedValues.bookingFee || 0) - (watchedValues.commission || 0) - (watchedValues.fuelCost || 0);
+  const netIncome = (watchedValues.amount || 0) - (watchedValues.salikFee || 0) - (watchedValues.airportFee || 0) - (watchedValues.bookingFee || 0) - (watchedValues.commission || 0) - (watchedValues.fuelCost || 0);
 
   useEffect(() => {
     if (platform === 'bolt') {
@@ -97,7 +97,7 @@ export default function AddIncomeDialog() {
 
   const onSubmit = (data: IncomeFormValues) => {
     addIncome({ ...data, date: data.date.toISOString() });
-    form.reset({ date: new Date(), amount: 0, distance: 0, platform: undefined, salikToll: 0, airportFee: 0, bookingFee: 0, commission: 0, fuelCost: 0, pickupLocation: undefined });
+    form.reset({ date: new Date(), amount: 0, distance: 0, platform: undefined, salikFee: 0, airportFee: 0, bookingFee: 0, commission: 0, fuelCost: 0, pickupLocation: undefined });
     setOpen(false);
   };
 
@@ -179,8 +179,8 @@ export default function AddIncomeDialog() {
                 <Input id="fuelCost" type="number" step="0.01" placeholder="4.41" {...form.register('fuelCost')} readOnly />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="salikToll">Salik Toll</Label>
-              <Input id="salikToll" type="number" step="0.01" placeholder="4.00" {...form.register('salikToll')} />
+              <Label htmlFor="salikFee">Salik Fee</Label>
+              <Input id="salikFee" type="number" step="0.01" placeholder="4.00" {...form.register('salikFee')} />
             </div>
           </div>
           

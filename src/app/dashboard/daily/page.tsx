@@ -8,8 +8,8 @@ import { format, startOfDay } from 'date-fns';
 import { groupBy } from '@/lib/utils';
 import type { Income } from '@/lib/types';
 
-const calculateNet = (amount: number, { salikToll = 0, airportFee = 0, commission = 0, bookingFee = 0, fuelCost = 0 }: { salikToll?: number, airportFee?: number, commission?: number, bookingFee?: number, fuelCost?: number }) => {
-    return amount - salikToll - airportFee - commission - bookingFee - fuelCost;
+const calculateNet = (amount: number, { salikFee = 0, airportFee = 0, commission = 0, bookingFee = 0, fuelCost = 0 }: { salikFee?: number, airportFee?: number, commission?: number, bookingFee?: number, fuelCost?: number }) => {
+    return amount - salikFee - airportFee - commission - bookingFee - fuelCost;
 }
 
 export default function DailyReportPage() {

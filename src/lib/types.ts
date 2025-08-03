@@ -15,7 +15,7 @@ export interface Income {
   amount: number;
   date: string; // ISO string
   pickupLocation?: PickupLocation;
-  salikToll?: number;
+  salikFee?: number;
   airportFee?: number;
   bookingFee?: number;
   commission?: number;

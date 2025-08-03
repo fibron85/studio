@@ -7,8 +7,8 @@ import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 import { format, endOfWeek, eachWeekOfInterval, subWeeks, startOfWeek } from 'date-fns';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 
-const calculateNet = (amount: number, { salikToll = 0, airportFee = 0, commission = 0, bookingFee = 0, fuelCost = 0 }: { salikToll?: number, airportFee?: number, commission?: number, bookingFee?: number, fuelCost?: number }) => {
-    return amount - salikToll - airportFee - commission - bookingFee - fuelCost;
+const calculateNet = (amount: number, { salikFee = 0, airportFee = 0, commission = 0, bookingFee = 0, fuelCost = 0 }: { salikFee?: number, airportFee?: number, commission?: number, bookingFee?: number, fuelCost?: number }) => {
+    return amount - salikFee - airportFee - commission - bookingFee - fuelCost;
 }
 
 export default function WeeklyReportPage() {
