@@ -37,6 +37,7 @@ const incomeSchema = z.object({
   amount: z.coerce.number().min(0.01, 'Amount must be greater than 0'),
   distance: z.coerce.number().optional(),
   date: z.date(),
+  pickupLocation: z.enum(["airport_t1", "airport_t2", "airport_t3", "dubai_mall", "atlantis_the_palm", "global_village", "other"]).optional(),
   salikToll: z.coerce.number().optional(),
   airportFee: z.coerce.number().optional(),
   bookingFee: z.coerce.number().optional(),
@@ -101,7 +102,7 @@ export default function AddIncomeDialog() {
 
   const onSubmit = (data: IncomeFormValues) => {
     addIncome({ ...data, date: data.date.toISOString() });
-    form.reset({ date: new Date(), amount: undefined, distance: undefined, platform: undefined, salikToll: 0, airportFee: 0, bookingFee: 0, commission: 0, fuelCost: 0 });
+    form.reset({ date: new Date(), amount: undefined, distance: undefined, platform: undefined, salikToll: 0, airportFee: 0, bookingFee: 0, commission: 0, fuelCost: 0, pickupLocation: undefined });
     setOpen(false);
   };
 
@@ -140,6 +141,30 @@ export default function AddIncomeDialog() {
               />
               {form.formState.errors.platform && <p className="text-sm font-medium text-destructive">{form.formState.errors.platform.message}</p>}
             </div>
+
+            <div className="space-y-2">
+                <Label htmlFor="pickupLocation">Pickup Location</Label>
+                <Controller
+                    control={form.control}
+                    name="pickupLocation"
+                    render={({ field }) => (
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <SelectTrigger>
+                        <SelectValue placeholder="Select a location" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="airport_t1">Airport T1</SelectItem>
+                            <SelectItem value="airport_t2">Airport T2</SelectItem>
+                            <SelectItem value="airport_t3">Airport T3</SelectItem>
+                            <SelectItem value="dubai_mall">Dubai Mall</SelectItem>
+                            <SelectItem value="atlantis_the_palm">Atlantis The Palm</SelectItem>
+                            <SelectItem value="global_village">Global Village</SelectItem>
+                            <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    )}
+                />
+            </div>
           
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -174,14 +199,14 @@ export default function AddIncomeDialog() {
                     <Label htmlFor="airportFee">Airport Fee</Label>
                     <Input id="airportFee" type="number" step="0.01" placeholder="20.00" {...form.register('airportFee')} readOnly />
                 </div>
+                <div className="space-y-2">
+                    <Label htmlFor="commission">Commission</Label>
+                    <Input id="commission" type="number" step="0.01" placeholder="5.00" {...form.register('commission')} readOnly />
+                </div>
             </div>
           )}
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-                <Label htmlFor="commission">Commission</Label>
-                <Input id="commission" type="number" step="0.01" placeholder="5.00" {...form.register('commission')} readOnly={platform === 'bolt'} />
-            </div>
              <div className="space-y-2">
                 <Label htmlFor="date">Date</Label>
                 <Controller
