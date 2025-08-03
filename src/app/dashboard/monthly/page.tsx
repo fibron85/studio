@@ -9,6 +9,10 @@ import { Lightbulb } from 'lucide-react';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
+const calculateNet = (amount: number, { salikToll = 0, airportFee = 0, commission = 0 }: { salikToll?: number, airportFee?: number, commission?: number }) => {
+    return amount - salikToll - airportFee - commission;
+}
+
 export default function MonthlyReportPage() {
     const { incomes, loading } = useAppContext();
     
@@ -27,7 +31,7 @@ export default function MonthlyReportPage() {
     const monthlyData = last12Months.map(monthStart => {
         const monthKey = format(monthStart, 'yyyy-MM');
         const monthIncomes = incomes.filter(i => format(new Date(i.date), 'yyyy-MM') === monthKey);
-        const total = monthIncomes.reduce((sum, i) => sum + i.amount, 0);
+        const total = monthIncomes.reduce((sum, i) => sum + calculateNet(i.amount, i), 0);
         return {
             name: format(monthStart, 'MMM yy'),
             total: total
@@ -39,11 +43,11 @@ export default function MonthlyReportPage() {
             <h2 className="text-3xl font-bold tracking-tight">Monthly Report</h2>
             <Card>
                 <CardHeader>
-                    <CardTitle>Last 12 Months Income</CardTitle>
-                    <CardDescription>Your income trends over the past year.</CardDescription>
+                    <CardTitle>Last 12 Months Net Income</CardTitle>
+                    <CardDescription>Your net income trends over the past year.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                    <ChartContainer config={{ total: { label: "Income", color: "hsl(var(--primary))" } }} className="h-[400px] w-full">
+                    <ChartContainer config={{ total: { label: "Net Income", color: "hsl(var(--primary))" } }} className="h-[400px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={monthlyData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                                 <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false}/>

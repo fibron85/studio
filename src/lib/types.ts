@@ -5,6 +5,9 @@ export interface Income {
   platform: RidePlatform;
   amount: number;
   date: string; // ISO string
+  salikToll?: number;
+  airportFee?: number;
+  commission?: number;
 }
 
 export interface Goal {

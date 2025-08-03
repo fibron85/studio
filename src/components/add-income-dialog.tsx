@@ -35,6 +35,9 @@ const incomeSchema = z.object({
   platform: z.enum(['uber', 'careem', 'bolt'], { required_error: "Please select a platform."}),
   amount: z.coerce.number().min(0.01, 'Amount must be greater than 0'),
   date: z.date(),
+  salikToll: z.coerce.number().optional(),
+  airportFee: z.coerce.number().optional(),
+  commission: z.coerce.number().optional(),
 });
 
 type IncomeFormValues = z.infer<typeof incomeSchema>;
@@ -92,9 +95,24 @@ export default function AddIncomeDialog() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="amount">Amount ($)</Label>
+            <Label htmlFor="amount">Gross Amount ($)</Label>
             <Input id="amount" type="number" step="0.01" placeholder="25.50" {...form.register('amount')} />
             {form.formState.errors.amount && <p className="text-sm font-medium text-destructive">{form.formState.errors.amount.message}</p>}
+          </div>
+
+          <div className="grid grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="commission">Commission</Label>
+              <Input id="commission" type="number" step="0.01" placeholder="5.00" {...form.register('commission')} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="salikToll">Salik Toll</Label>
+              <Input id="salikToll" type="number" step="0.01" placeholder="4.00" {...form.register('salikToll')} />
+            </div>
+             <div className="space-y-2">
+              <Label htmlFor="airportFee">Airport Fee</Label>
+              <Input id="airportFee" type="number" step="0.01" placeholder="10.00" {...form.register('airportFee')} />
+            </div>
           </div>
           
           <div className="space-y-2">

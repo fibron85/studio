@@ -8,6 +8,10 @@ import { format, startOfDay } from 'date-fns';
 import { groupBy } from '@/lib/utils';
 import type { Income } from '@/lib/types';
 
+const calculateNet = (amount: number, { salikToll = 0, airportFee = 0, commission = 0 }: { salikToll?: number, airportFee?: number, commission?: number }) => {
+    return amount - salikToll - airportFee - commission;
+}
+
 export default function DailyReportPage() {
     const { incomes, loading } = useAppContext();
 
@@ -18,7 +22,7 @@ export default function DailyReportPage() {
     const groupedByDay = groupBy(incomes, (income: Income) => format(startOfDay(new Date(income.date)), 'yyyy-MM-dd'));
 
     const dailySummaries = Object.entries(groupedByDay).map(([date, dailyIncomes]) => {
-        const total = dailyIncomes.reduce((sum, i) => sum + i.amount, 0);
+        const total = dailyIncomes.reduce((sum, i) => sum + calculateNet(i.amount, i), 0);
         return {
             date,
             total,
@@ -33,7 +37,7 @@ export default function DailyReportPage() {
             <Card>
                 <CardHeader>
                     <CardTitle>Daily Summary</CardTitle>
-                    <CardDescription>A summary of your income, day by day.</CardDescription>
+                    <CardDescription>A summary of your net income, day by day.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Table>
@@ -41,7 +45,7 @@ export default function DailyReportPage() {
                             <TableRow>
                                 <TableHead>Date</TableHead>
                                 <TableHead>Rides</TableHead>
-                                <TableHead className="text-right">Total Income</TableHead>
+                                <TableHead className="text-right">Total Net Income</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>

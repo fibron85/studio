@@ -7,6 +7,10 @@ import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 import { format, endOfWeek, eachWeekOfInterval, subWeeks, startOfWeek } from 'date-fns';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 
+const calculateNet = (amount: number, { salikToll = 0, airportFee = 0, commission = 0 }: { salikToll?: number, airportFee?: number, commission?: number }) => {
+    return amount - salikToll - airportFee - commission;
+}
+
 export default function WeeklyReportPage() {
     const { incomes, loading } = useAppContext();
 
@@ -25,7 +29,7 @@ export default function WeeklyReportPage() {
             const incomeDate = new Date(i.date);
             return incomeDate >= weekStart && incomeDate <= weekEnd;
         });
-        const total = weekIncomes.reduce((sum, i) => sum + i.amount, 0);
+        const total = weekIncomes.reduce((sum, i) => sum + calculateNet(i.amount, i), 0);
         return {
             name: `${format(weekStart, 'MMM d')}`,
             total: total
@@ -37,11 +41,11 @@ export default function WeeklyReportPage() {
             <h2 className="text-3xl font-bold tracking-tight">Weekly Report</h2>
             <Card>
                 <CardHeader>
-                    <CardTitle>Last 12 Weeks Income</CardTitle>
-                    <CardDescription>Your income totals for the past 12 weeks.</CardDescription>
+                    <CardTitle>Last 12 Weeks Net Income</CardTitle>
+                    <CardDescription>Your net income totals for the past 12 weeks.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <ChartContainer config={{ total: { label: "Income", color: "hsl(var(--primary))" } }} className="h-[400px] w-full">
+                    <ChartContainer config={{ total: { label: "Net Income", color: "hsl(var(--primary))" } }} className="h-[400px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={weeklyData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                                 <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false}/>

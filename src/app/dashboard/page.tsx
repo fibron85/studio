@@ -9,6 +9,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format, startOfMonth, isWithinInterval } from 'date-fns';
 
+const calculateNet = (amount: number, { salikToll = 0, airportFee = 0, commission = 0 }: { salikToll?: number, airportFee?: number, commission?: number }) => {
+    return amount - salikToll - airportFee - commission;
+}
+
 export default function DashboardPage() {
     const { incomes, goal, loading } = useAppContext();
 
@@ -24,9 +28,9 @@ export default function DashboardPage() {
             const incomeDate = new Date(income.date);
             return isWithinInterval(incomeDate, { start: startOfCurrentMonth, end: today });
         })
-        .reduce((acc, income) => acc + income.amount, 0);
+        .reduce((acc, income) => acc + calculateNet(income.amount, income), 0);
     
-    const totalIncome = incomes.reduce((acc, income) => acc + income.amount, 0);
+    const totalIncome = incomes.reduce((acc, income) => acc + calculateNet(income.amount, income), 0);
 
     const uniqueDays = new Set(incomes.map(i => new Date(i.date).toDateString())).size;
     const avgDailyIncome = uniqueDays > 0 ? totalIncome / uniqueDays : 0;
@@ -47,7 +51,7 @@ export default function DashboardPage() {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Income</CardTitle>
+                        <CardTitle className="text-sm font-medium">Total Net Income</CardTitle>
                         <DollarSign className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
@@ -56,7 +60,7 @@ export default function DashboardPage() {
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">This Month's Income</CardTitle>
+                        <CardTitle className="text-sm font-medium">This Month's Net Income</CardTitle>
                         <DollarSign className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
@@ -65,7 +69,7 @@ export default function DashboardPage() {
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Average Daily Income</CardTitle>
+                        <CardTitle className="text-sm font-medium">Average Daily Net Income</CardTitle>
                         <DollarSign className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
@@ -93,7 +97,8 @@ export default function DashboardPage() {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Platform</TableHead>
-                                <TableHead className="text-right">Amount</TableHead>
+                                <TableHead className="text-right">Gross</TableHead>
+                                <TableHead className="text-right">Net</TableHead>
                                 <TableHead className="text-right">Date</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -102,11 +107,12 @@ export default function DashboardPage() {
                                 <TableRow key={income.id}>
                                     <TableCell className="font-medium capitalize">{income.platform}</TableCell>
                                     <TableCell className="text-right">${income.amount.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right">${calculateNet(income.amount, income).toFixed(2)}</TableCell>
                                     <TableCell className="text-right">{format(new Date(income.date), 'PPP')}</TableCell>
                                 </TableRow>
                             )) : (
                                 <TableRow>
-                                    <TableCell colSpan={3} className="text-center h-24">No recent income recorded.</TableCell>
+                                    <TableCell colSpan={4} className="text-center h-24">No recent income recorded.</TableCell>
                                 </TableRow>
                             )}
                         </TableBody>
