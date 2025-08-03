@@ -65,13 +65,9 @@ export default function AddIncomeDialog() {
   const platform = form.watch("platform");
   const amount = form.watch("amount") || 0;
   const distance = form.watch("distance") || 0;
-  const salikToll = form.watch("salikToll") || 0;
-  const airportFee = form.watch("airportFee") || 0;
-  const bookingFee = form.watch("bookingFee") || 0;
-  const commission = form.watch("commission") || 0;
-  const fuelCost = form.watch("fuelCost") || 0;
-
-  const netIncome = amount - salikToll - airportFee - bookingFee - commission - fuelCost;
+  
+  const watchedValues = form.watch();
+  const netIncome = (watchedValues.amount || 0) - (watchedValues.salikToll || 0) - (watchedValues.airportFee || 0) - (watchedValues.bookingFee || 0) - (watchedValues.commission || 0) - (watchedValues.fuelCost || 0);
 
   useEffect(() => {
     if (platform === 'bolt') {
@@ -83,9 +79,9 @@ export default function AddIncomeDialog() {
       }
       form.setValue('airportFee', 20);
     } else {
-        form.setValue('commission', 0);
-        form.setValue('airportFee', 0);
-        form.setValue('bookingFee', 0);
+      form.setValue('commission', 0);
+      form.setValue('airportFee', 0);
+      form.setValue('bookingFee', 0);
     }
   }, [platform, amount, form]);
 
