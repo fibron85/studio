@@ -34,6 +34,7 @@ import { cn } from '@/lib/utils';
 const incomeSchema = z.object({
   platform: z.enum(['uber', 'careem', 'bolt'], { required_error: "Please select a platform."}),
   amount: z.coerce.number().min(0.01, 'Amount must be greater than 0'),
+  distance: z.coerce.number().optional(),
   date: z.date(),
   salikToll: z.coerce.number().optional(),
   airportFee: z.coerce.number().optional(),
@@ -94,10 +95,16 @@ export default function AddIncomeDialog() {
             {form.formState.errors.platform && <p className="text-sm font-medium text-destructive">{form.formState.errors.platform.message}</p>}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="amount">Gross Amount ($)</Label>
-            <Input id="amount" type="number" step="0.01" placeholder="25.50" {...form.register('amount')} />
-            {form.formState.errors.amount && <p className="text-sm font-medium text-destructive">{form.formState.errors.amount.message}</p>}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="amount">Gross Amount ($)</Label>
+              <Input id="amount" type="number" step="0.01" placeholder="25.50" {...form.register('amount')} />
+              {form.formState.errors.amount && <p className="text-sm font-medium text-destructive">{form.formState.errors.amount.message}</p>}
+            </div>
+             <div className="space-y-2">
+              <Label htmlFor="distance">Distance (KM)</Label>
+              <Input id="distance" type="number" step="0.1" placeholder="15.2" {...form.register('distance')} />
+            </div>
           </div>
 
           <div className="grid grid-cols-3 gap-4">

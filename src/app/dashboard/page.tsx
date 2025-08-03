@@ -99,6 +99,7 @@ export default function DashboardPage() {
                                 <TableHead>Platform</TableHead>
                                 <TableHead className="text-right">Gross</TableHead>
                                 <TableHead className="text-right">Net</TableHead>
+                                <TableHead className="text-right">Distance</TableHead>
                                 <TableHead className="text-right">Date</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -108,11 +109,12 @@ export default function DashboardPage() {
                                     <TableCell className="font-medium capitalize">{income.platform}</TableCell>
                                     <TableCell className="text-right">${income.amount.toFixed(2)}</TableCell>
                                     <TableCell className="text-right">${calculateNet(income.amount, income).toFixed(2)}</TableCell>
+                                    <TableCell className="text-right">{income.distance ? `${income.distance.toFixed(1)} km` : '-'}</TableCell>
                                     <TableCell className="text-right">{format(new Date(income.date), 'PPP')}</TableCell>
                                 </TableRow>
                             )) : (
                                 <TableRow>
-                                    <TableCell colSpan={4} className="text-center h-24">No recent income recorded.</TableCell>
+                                    <TableCell colSpan={5} className="text-center h-24">No recent income recorded.</TableCell>
                                 </TableRow>
                             )}
                         </TableBody>

@@ -8,6 +8,7 @@ export interface Income {
   salikToll?: number;
   airportFee?: number;
   commission?: number;
+  distance?: number;
 }
 
 export interface Goal {
