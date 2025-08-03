@@ -82,13 +82,21 @@ export default function AddIncomeDialog() {
       bookingFee: 0,
       airportFee: 0,
       fuelCost: 0,
+      salikToll: 0,
     },
   });
 
   const platform = form.watch("platform");
-  const amount = form.watch("amount");
+  const amount = form.watch("amount") || 0;
   const pickupLocation = form.watch("pickupLocation");
-  const distance = form.watch("distance");
+  const distance = form.watch("distance") || 0;
+  const salikToll = form.watch("salikToll") || 0;
+  const airportFee = form.watch("airportFee") || 0;
+  const bookingFee = form.watch("bookingFee") || 0;
+  const commission = form.watch("commission") || 0;
+  const fuelCost = form.watch("fuelCost") || 0;
+
+  const netIncome = amount - salikToll - airportFee - bookingFee - commission - fuelCost;
 
   useEffect(() => {
     if (platform === 'bolt') {
@@ -132,7 +140,7 @@ export default function AddIncomeDialog() {
   }, [platform, pickupLocation, form]);
 
   useEffect(() => {
-    if (distance && distance > 0) {
+    if (distance > 0) {
       const fuelCost = distance * 0.29;
       form.setValue('fuelCost', parseFloat(fuelCost.toFixed(2)));
     } else {
@@ -143,7 +151,7 @@ export default function AddIncomeDialog() {
 
   const onSubmit = (data: IncomeFormValues) => {
     addIncome({ ...data, date: data.date.toISOString() });
-    form.reset({ date: new Date(), amount: undefined, distance: undefined, salikToll: undefined, airportFee: 0, bookingFee: 0, commission: 0, fuelCost: 0 });
+    form.reset({ date: new Date(), amount: undefined, distance: undefined, salikToll: 0, airportFee: 0, bookingFee: 0, commission: 0, fuelCost: 0 });
     setOpen(false);
   };
 
@@ -247,40 +255,45 @@ export default function AddIncomeDialog() {
                 <Label htmlFor="commission">Commission</Label>
                 <Input id="commission" type="number" step="0.01" placeholder="5.00" {...form.register('commission')} readOnly={platform === 'bolt'} />
             </div>
+             <div className="space-y-2">
+                <Label htmlFor="date">Date</Label>
+                <Controller
+                    control={form.control}
+                    name="date"
+                    render={({ field }) => (
+                        <Popover>
+                            <PopoverTrigger asChild>
+                            <Button
+                                variant={"outline"}
+                                className={cn(
+                                    "w-full justify-start text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                )}
+                                >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                            </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0">
+                            <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                initialFocus
+                            />
+                            </PopoverContent>
+                        </Popover>
+                    )}
+                />
+                {form.formState.errors.date && <p className="text-sm font-medium text-destructive">{form.formState.errors.date.message}</p>}
+            </div>
+          </div>
+
+          <div className="space-y-2 border-t pt-4">
+            <Label>Net Income</Label>
+            <Input value={`$${netIncome.toFixed(2)}`} readOnly className="font-bold text-lg h-12 bg-muted" />
           </div>
           
-          <div className="space-y-2">
-            <Label htmlFor="date">Date</Label>
-            <Controller
-                control={form.control}
-                name="date"
-                render={({ field }) => (
-                    <Popover>
-                        <PopoverTrigger asChild>
-                        <Button
-                            variant={"outline"}
-                            className={cn(
-                                "w-full justify-start text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                            )}
-                            >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                        </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                        <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            initialFocus
-                        />
-                        </PopoverContent>
-                    </Popover>
-                )}
-             />
-             {form.formState.errors.date && <p className="text-sm font-medium text-destructive">{form.formState.errors.date.message}</p>}
-          </div>
           <DialogFooter>
             <DialogClose asChild>
                 <Button type="button" variant="ghost">Cancel</Button>
