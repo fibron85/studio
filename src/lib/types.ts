@@ -17,7 +17,6 @@ export interface Income {
   platform: RidePlatform;
   amount: number;
   date: string; // ISO string
-  pickupLocation?: PickupLocation;
   salikToll?: number;
   airportFee?: number;
   bookingFee?: number;
