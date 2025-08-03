@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -50,12 +50,26 @@ export default function AddIncomeDialog() {
     resolver: zodResolver(incomeSchema),
     defaultValues: {
       date: new Date(),
+      commission: 0,
     },
   });
 
+  const platform = form.watch("platform");
+  const amount = form.watch("amount");
+
+  useEffect(() => {
+    if (platform === 'bolt' && amount > 0) {
+      const commission = amount * 0.2;
+      form.setValue('commission', parseFloat(commission.toFixed(2)));
+    } else if (platform !== 'bolt') {
+        form.setValue('commission', 0);
+    }
+  }, [platform, amount, form]);
+
+
   const onSubmit = (data: IncomeFormValues) => {
     addIncome({ ...data, date: data.date.toISOString() });
-    form.reset({ date: new Date() });
+    form.reset({ date: new Date(), amount: undefined, distance: undefined, salikToll: undefined, airportFee: undefined, commission: 0 });
     setOpen(false);
   };
 
@@ -110,7 +124,7 @@ export default function AddIncomeDialog() {
           <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="commission">Commission</Label>
-              <Input id="commission" type="number" step="0.01" placeholder="5.00" {...form.register('commission')} />
+              <Input id="commission" type="number" step="0.01" placeholder="5.00" {...form.register('commission')} readOnly={platform === 'bolt'} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="salikToll">Salik Toll</Label>
