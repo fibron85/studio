@@ -11,6 +11,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import type { RidePlatform } from '@/lib/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 const calculateNet = (amount: number, { salikFee = 0, airportFee = 0, commission = 0, bookingFee = 0, fuelCost = 0 }: { salikFee?: number, airportFee?: number, commission?: number, bookingFee?: number, fuelCost?: number }) => {
     return amount - salikFee - airportFee - commission - bookingFee - fuelCost;
@@ -51,6 +52,18 @@ export default function MonthlyReportPage() {
         };
     });
 
+    const summary = filteredIncomes.reduce((acc, income) => {
+        acc.gross += income.amount;
+        acc.salikFee += income.salikFee || 0;
+        acc.airportFee += income.airportFee || 0;
+        acc.bookingFee += income.bookingFee || 0;
+        acc.commission += income.commission || 0;
+        acc.fuelCost += income.fuelCost || 0;
+        acc.net += calculateNet(income.amount, income);
+        return acc;
+    }, { gross: 0, net: 0, salikFee: 0, airportFee: 0, bookingFee: 0, commission: 0, fuelCost: 0, rides: filteredIncomes.length });
+
+
     return (
         <div className="flex-1 space-y-4 p-4 md:p-8 pt-0 md:pt-6">
             <h2 className="text-3xl font-bold tracking-tight">Monthly Report</h2>
@@ -90,6 +103,60 @@ export default function MonthlyReportPage() {
                             {aiInsight}
                         </AlertDescription>
                     </Alert>
+                </CardContent>
+            </Card>
+
+             <Card>
+                <CardHeader>
+                    <CardTitle>Monthly Summary</CardTitle>
+                    <CardDescription>
+                        Summary for the last 12 months
+                        {platform !== 'all' && ` on ${platform.charAt(0).toUpperCase() + platform.slice(1)}`}
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                           <TableRow>
+                                <TableHead>Metric</TableHead>
+                                <TableHead className="text-right">Total</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            <TableRow>
+                                <TableCell className="font-medium">Total Rides</TableCell>
+                                <TableCell className="text-right">{summary.rides}</TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Gross Income</TableCell>
+                                <TableCell className="text-right text-green-600">${summary.gross.toFixed(2)}</TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell>Salik Fee</TableCell>
+                                <TableCell className="text-right text-red-600">-${summary.salikFee.toFixed(2)}</TableCell>
+                            </TableRow>
+                             <TableRow>
+                                <TableCell>Airport Fee</TableCell>
+                                <TableCell className="text-right text-red-600">-${summary.airportFee.toFixed(2)}</TableCell>
+                            </TableRow>
+                             <TableRow>
+                                <TableCell>Booking Fee</TableCell>
+                                <TableCell className="text-right text-red-600">-${summary.bookingFee.toFixed(2)}</TableCell>
+                            </TableRow>
+                             <TableRow>
+                                <TableCell>Commission</TableCell>
+                                <TableCell className="text-right text-red-600">-${summary.commission.toFixed(2)}</TableCell>
+                            </TableRow>
+                             <TableRow>
+                                <TableCell>Fuel Cost</TableCell>
+                                <TableCell className="text-right text-red-600">-${summary.fuelCost.toFixed(2)}</TableCell>
+                            </TableRow>
+                             <TableRow className="font-bold bg-muted hover:bg-muted">
+                                <TableCell>Net Income</TableCell>
+                                <TableCell className="text-right">${summary.net.toFixed(2)}</TableCell>
+                            </TableRow>
+                        </TableBody>
+                    </Table>
                 </CardContent>
             </Card>
         </div>

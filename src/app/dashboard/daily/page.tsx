@@ -14,11 +14,6 @@ const calculateNet = (amount: number, { salikFee = 0, airportFee = 0, commission
     return amount - salikFee - airportFee - commission - bookingFee - fuelCost;
 }
 
-const calculateTotalCosts = ({ salikFee = 0, airportFee = 0, commission = 0, bookingFee = 0, fuelCost = 0 }: { salikFee?: number, airportFee?: number, commission?: number, bookingFee?: number, fuelCost?: number }) => {
-    return salikFee + airportFee + commission + bookingFee + fuelCost;
-}
-
-
 export default function DailyReportPage() {
     const { incomes, loading } = useAppContext();
     const [platform, setPlatform] = useState<RidePlatform | 'all'>('all');
@@ -34,14 +29,20 @@ export default function DailyReportPage() {
     const groupedByDay = groupBy(filteredIncomes, (income: Income) => format(startOfDay(new Date(income.date)), 'yyyy-MM-dd'));
 
     const dailySummaries = Object.entries(groupedByDay).map(([date, dailyIncomes]) => {
-        const gross = dailyIncomes.reduce((sum, i) => sum + i.amount, 0);
-        const costs = dailyIncomes.reduce((sum, i) => sum + calculateTotalCosts(i), 0);
-        const net = dailyIncomes.reduce((sum, i) => sum + calculateNet(i.amount, i), 0);
+        const summary = dailyIncomes.reduce((acc, income) => {
+            acc.gross += income.amount;
+            acc.salikFee += income.salikFee || 0;
+            acc.airportFee += income.airportFee || 0;
+            acc.bookingFee += income.bookingFee || 0;
+            acc.commission += income.commission || 0;
+            acc.fuelCost += income.fuelCost || 0;
+            acc.net += calculateNet(income.amount, income);
+            return acc;
+        }, { gross: 0, net: 0, salikFee: 0, airportFee: 0, bookingFee: 0, commission: 0, fuelCost: 0 });
+
         return {
             date,
-            gross,
-            costs,
-            net,
+            ...summary,
             count: dailyIncomes.length,
         }
     }).sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -75,7 +76,11 @@ export default function DailyReportPage() {
                                 <TableHead>Date</TableHead>
                                 <TableHead>Rides</TableHead>
                                 <TableHead className="text-right">Gross</TableHead>
-                                <TableHead className="text-right">Costs</TableHead>
+                                <TableHead className="text-right">Salik</TableHead>
+                                <TableHead className="text-right">Airport</TableHead>
+                                <TableHead className="text-right">Booking</TableHead>
+                                <TableHead className="text-right">Commission</TableHead>
+                                <TableHead className="text-right">Fuel</TableHead>
                                 <TableHead className="text-right">Net</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -85,12 +90,16 @@ export default function DailyReportPage() {
                                     <TableCell className="font-medium">{format(new Date(summary.date), 'PPP')}</TableCell>
                                     <TableCell>{summary.count}</TableCell>
                                     <TableCell className="text-right text-green-600">${summary.gross.toFixed(2)}</TableCell>
-                                    <TableCell className="text-right text-red-600">-${summary.costs.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right text-red-600">-${summary.salikFee.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right text-red-600">-${summary.airportFee.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right text-red-600">-${summary.bookingFee.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right text-red-600">-${summary.commission.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right text-red-600">-${summary.fuelCost.toFixed(2)}</TableCell>
                                     <TableCell className="text-right font-bold">${summary.net.toFixed(2)}</TableCell>
                                 </TableRow>
                             )) : (
                                 <TableRow>
-                                    <TableCell colSpan={5} className="text-center h-24">No income data available.</TableCell>
+                                    <TableCell colSpan={9} className="text-center h-24">No income data available.</TableCell>
                                 </TableRow>
                             )}
                         </TableBody>
