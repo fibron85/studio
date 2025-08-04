@@ -1,11 +1,14 @@
 'use client';
 
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useAppContext } from '@/contexts/app-provider';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
-import { format, endOfWeek, eachWeekOfInterval, subWeeks, startOfWeek } from 'date-fns';
+import { format, endOfWeek, eachWeekOfInterval, subWeeks } from 'date-fns';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import type { RidePlatform } from '@/lib/types';
 
 const calculateNet = (amount: number, { salikFee = 0, airportFee = 0, commission = 0, bookingFee = 0, fuelCost = 0 }: { salikFee?: number, airportFee?: number, commission?: number, bookingFee?: number, fuelCost?: number }) => {
     return amount - salikFee - airportFee - commission - bookingFee - fuelCost;
@@ -13,10 +16,15 @@ const calculateNet = (amount: number, { salikFee = 0, airportFee = 0, commission
 
 export default function WeeklyReportPage() {
     const { incomes, loading } = useAppContext();
+    const [platform, setPlatform] = useState<RidePlatform | 'all'>('all');
 
     if (loading) {
         return <ReportSkeleton />;
     }
+
+    const filteredIncomes = incomes.filter(income => {
+        return platform === 'all' || income.platform === platform;
+    });
 
     const last12Weeks = eachWeekOfInterval({
         start: subWeeks(new Date(), 11),
@@ -25,7 +33,7 @@ export default function WeeklyReportPage() {
 
     const weeklyData = last12Weeks.map(weekStart => {
         const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
-        const weekIncomes = incomes.filter(i => {
+        const weekIncomes = filteredIncomes.filter(i => {
             const incomeDate = new Date(i.date);
             return incomeDate >= weekStart && incomeDate <= weekEnd;
         });
@@ -44,7 +52,20 @@ export default function WeeklyReportPage() {
                     <CardTitle>Last 12 Weeks Net Income</CardTitle>
                     <CardDescription>Your net income totals for the past 12 weeks.</CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-4">
+                    <div className="flex justify-start">
+                         <Select value={platform} onValueChange={(value) => setPlatform(value as RidePlatform | 'all')}>
+                            <SelectTrigger className="w-full md:w-[180px]">
+                                <SelectValue placeholder="Select Platform" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Platforms</SelectItem>
+                                <SelectItem value="uber">Uber</SelectItem>
+                                <SelectItem value="careem">Careem</SelectItem>
+                                <SelectItem value="bolt">Bolt</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
                     <ChartContainer config={{ total: { label: "Net Income", color: "hsl(var(--primary))" } }} className="h-[400px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={weeklyData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
@@ -70,7 +91,8 @@ function ReportSkeleton() {
                     <Skeleton className="h-6 w-1/4" />
                     <Skeleton className="h-4 w-1/3" />
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-4 pt-6">
+                   <Skeleton className="h-10 w-48" />
                    <Skeleton className="h-[400px] w-full" />
                 </CardContent>
             </Card>
