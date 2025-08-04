@@ -1,3 +1,5 @@
+'use client';
+
 import { AppProvider } from '@/contexts/app-provider';
 import DashboardSidebar from '@/components/dashboard-sidebar';
 import {
@@ -6,12 +8,32 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import { Toaster } from '@/components/ui/toaster';
+import { useAuth } from '@/contexts/auth-provider';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login');
+    }
+  }, [user, loading, router]);
+  
+  if (loading || !user) {
+    return (
+        <div className="flex h-screen items-center justify-center">
+            <p>Loading...</p>
+        </div>
+    );
+  }
+
   return (
     <AppProvider>
       <SidebarProvider>

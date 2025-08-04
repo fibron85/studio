@@ -3,6 +3,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { Income, Goal } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from './auth-provider';
+import { db } from '@/lib/firebase';
+import { collection, doc, getDoc, getDocs, setDoc, query, orderBy } from 'firebase/firestore';
 
 interface AppContextType {
   incomes: Income[];
@@ -15,55 +18,104 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
+  const { user, loading: authLoading } = useAuth();
   const [incomes, setIncomes] = useState<Income[]>([]);
   const [goal, setGoal] = useState<Goal>({ monthly: 2000 });
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
-    try {
-      const storedIncomes = localStorage.getItem('ride-share-incomes');
-      if (storedIncomes) {
-        setIncomes(JSON.parse(storedIncomes));
-      }
-      const storedGoal = localStorage.getItem('ride-share-goal');
-      if (storedGoal) {
-        setGoal(JSON.parse(storedGoal));
-      }
-    } catch (error) {
-      console.error("Failed to load data from localStorage", error);
-      toast({
-        title: "Error",
-        description: "Could not load saved data.",
-        variant: "destructive",
-      });
-    } finally {
-        setLoading(false);
+    if (authLoading) return;
+    if (!user) {
+      setIncomes([]);
+      setGoal({ monthly: 2000 });
+      setLoading(false);
+      return;
     }
-  }, [toast]);
 
-  const addIncome = (income: Omit<Income, 'id'>) => {
-    const newIncome: Income = { ...income, id: new Date().toISOString() + Math.random() };
-    const updatedIncomes = [...incomes, newIncome];
-    setIncomes(updatedIncomes);
-    localStorage.setItem('ride-share-incomes', JSON.stringify(updatedIncomes));
-    toast({
-      title: "Success",
-      description: "Income added successfully.",
-    });
+    const fetchData = async () => {
+      try {
+        const goalRef = doc(db, 'users', user.uid, 'settings', 'goal');
+        const goalSnap = await getDoc(goalRef);
+        if (goalSnap.exists()) {
+          setGoal(goalSnap.data() as Goal);
+        }
+
+        const incomesRef = collection(db, 'users', user.uid, 'incomes');
+        const q = query(incomesRef, orderBy('date', 'desc'));
+        const incomeSnap = await getDocs(q);
+        const userIncomes = incomeSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Income));
+        setIncomes(userIncomes);
+
+      } catch (error) {
+        console.error("Failed to load data from Firestore", error);
+        toast({
+          title: "Error",
+          description: "Could not load your data.",
+          variant: "destructive",
+        });
+      } finally {
+          setLoading(false);
+      }
+    }
+    fetchData();
+
+  }, [user, authLoading, toast]);
+
+  const addIncome = async (income: Omit<Income, 'id'>) => {
+    if (!user) return;
+    const newId = new Date().toISOString() + Math.random();
+    const newIncome: Income = { ...income, id: newId };
+    
+    try {
+        const incomeRef = doc(db, 'users', user.uid, 'incomes', newId);
+        await setDoc(incomeRef, newIncome);
+        setIncomes(prev => [newIncome, ...prev]);
+        toast({
+            title: "Success",
+            description: "Income added successfully.",
+        });
+    } catch(error) {
+        console.error("Error adding income: ", error);
+        toast({
+            title: "Error",
+            description: "Could not save income.",
+            variant: "destructive"
+        });
+    }
+
   };
 
-  const updateGoal = (newGoal: Goal) => {
-    setGoal(newGoal);
-    localStorage.setItem('ride-share-goal', JSON.stringify(newGoal));
-    toast({
-        title: "Success",
-        description: "Income goal updated.",
-    });
+  const updateGoal = async (newGoal: Goal) => {
+    if (!user) return;
+    try {
+      const goalRef = doc(db, 'users', user.uid, 'settings', 'goal');
+      await setDoc(goalRef, newGoal, { merge: true });
+      setGoal(newGoal);
+      toast({
+          title: "Success",
+          description: "Income goal updated.",
+      });
+    } catch(error) {
+       console.error("Error updating goal: ", error);
+       toast({
+            title: "Error",
+            description: "Could not update goal.",
+            variant: "destructive"
+       });
+    }
   };
+
+  const appContextValue = {
+    incomes,
+    goal,
+    addIncome,
+    setGoal: updateGoal,
+    loading: loading || authLoading
+  }
 
   return (
-    <AppContext.Provider value={{ incomes, goal, addIncome, setGoal: updateGoal, loading }}>
+    <AppContext.Provider value={appContextValue}>
       {children}
     </AppContext.Provider>
   );
