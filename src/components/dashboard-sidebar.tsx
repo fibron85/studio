@@ -9,7 +9,7 @@ import {
     SidebarMenuItem,
     SidebarMenuButton,
 } from '@/components/ui/sidebar';
-import { LayoutDashboard, CalendarDays, BarChart3, LineChart } from 'lucide-react';
+import { LayoutDashboard, CalendarDays, BarChart3, LineChart, FileText } from 'lucide-react';
 import Logo from './logo';
 
 const navItems = [
@@ -17,6 +17,7 @@ const navItems = [
     { href: '/dashboard/daily', label: 'Daily', icon: CalendarDays },
     { href: '/dashboard/weekly', label: 'Weekly Reports', icon: BarChart3 },
     { href: '/dashboard/monthly', label: 'Monthly Reports', icon: LineChart },
+    { href: '/dashboard/custom', label: 'Custom Report', icon: FileText },
 ]
 
 export default function DashboardSidebar() {
