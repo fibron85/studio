@@ -5,9 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { useAppContext } from '@/contexts/app-provider';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { format, startOfDay } from 'date-fns';
-import { groupBy } from '@/lib/utils';
-import type { Income, RidePlatform } from '@/lib/types';
+import { format } from 'date-fns';
+import type { RidePlatform } from '@/lib/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const calculateNet = (amount: number, { salikFee = 0, airportFee = 0, commission = 0, bookingFee = 0, fuelCost = 0 }: { salikFee?: number, airportFee?: number, commission?: number, bookingFee?: number, fuelCost?: number }) => {
@@ -22,39 +21,18 @@ export default function DailyReportPage() {
         return <ReportSkeleton />;
     }
 
-    const filteredIncomes = incomes.filter(income => {
-        return platform === 'all' || income.platform === platform;
-    });
-    
-    const groupedByDay = groupBy(filteredIncomes, (income: Income) => format(startOfDay(new Date(income.date)), 'yyyy-MM-dd'));
-
-    const dailySummaries = Object.entries(groupedByDay).map(([date, dailyIncomes]) => {
-        const summary = dailyIncomes.reduce((acc, income) => {
-            acc.gross += income.amount;
-            acc.salikFee += income.salikFee || 0;
-            acc.airportFee += income.airportFee || 0;
-            acc.bookingFee += income.bookingFee || 0;
-            acc.commission += income.commission || 0;
-            acc.fuelCost += income.fuelCost || 0;
-            acc.net += calculateNet(income.amount, income);
-            return acc;
-        }, { gross: 0, net: 0, salikFee: 0, airportFee: 0, bookingFee: 0, commission: 0, fuelCost: 0 });
-
-        return {
-            date,
-            ...summary,
-            count: dailyIncomes.length,
-        }
-    }).sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    const filteredIncomes = incomes
+        .filter(income => platform === 'all' || income.platform === platform)
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
 
     return (
         <div className="flex-1 space-y-4 p-4 md:p-8 pt-0 md:pt-6">
-            <h2 className="text-3xl font-bold tracking-tight">Daily Report</h2>
+            <h2 className="text-3xl font-bold tracking-tight">Daily Rides Log</h2>
             <Card>
                 <CardHeader>
-                    <CardTitle>Daily Summary</CardTitle>
-                    <CardDescription>A summary of your income, day by day.</CardDescription>
+                    <CardTitle>All Rides</CardTitle>
+                    <CardDescription>A detailed log of all your recorded rides.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="flex justify-start">
@@ -74,32 +52,34 @@ export default function DailyReportPage() {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Date</TableHead>
-                                <TableHead>Rides</TableHead>
+                                <TableHead>Platform</TableHead>
                                 <TableHead className="text-right">Gross</TableHead>
+                                <TableHead className="text-right">Net</TableHead>
+                                <TableHead className="text-right">Distance</TableHead>
                                 <TableHead className="text-right">Salik</TableHead>
                                 <TableHead className="text-right">Airport</TableHead>
                                 <TableHead className="text-right">Booking</TableHead>
                                 <TableHead className="text-right">Commission</TableHead>
                                 <TableHead className="text-right">Fuel</TableHead>
-                                <TableHead className="text-right">Net</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {dailySummaries.length > 0 ? dailySummaries.map(summary => (
-                                <TableRow key={summary.date}>
-                                    <TableCell className="font-medium">{format(new Date(summary.date), 'PPP')}</TableCell>
-                                    <TableCell>{summary.count}</TableCell>
-                                    <TableCell className="text-right text-green-600">AED {summary.gross.toFixed(2)}</TableCell>
-                                    <TableCell className="text-right text-red-600">-AED {summary.salikFee.toFixed(2)}</TableCell>
-                                    <TableCell className="text-right text-red-600">-AED {summary.airportFee.toFixed(2)}</TableCell>
-                                    <TableCell className="text-right text-red-600">-AED {summary.bookingFee.toFixed(2)}</TableCell>
-                                    <TableCell className="text-right text-red-600">-AED {summary.commission.toFixed(2)}</TableCell>
-                                    <TableCell className="text-right text-red-600">-AED {summary.fuelCost.toFixed(2)}</TableCell>
-                                    <TableCell className="text-right font-bold">AED {summary.net.toFixed(2)}</TableCell>
+                            {filteredIncomes.length > 0 ? filteredIncomes.map(income => (
+                                <TableRow key={income.id}>
+                                    <TableCell className="font-medium whitespace-nowrap">{format(new Date(income.date), 'PPP')}</TableCell>
+                                    <TableCell className="capitalize">{income.platform}</TableCell>
+                                    <TableCell className="text-right text-green-600">AED {income.amount.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right font-bold">AED {calculateNet(income.amount, income).toFixed(2)}</TableCell>
+                                    <TableCell className="text-right">{income.distance ? `${income.distance.toFixed(1)} km` : '-'}</TableCell>
+                                    <TableCell className="text-right text-red-600">-AED {(income.salikFee || 0).toFixed(2)}</TableCell>
+                                    <TableCell className="text-right text-red-600">-AED {(income.airportFee || 0).toFixed(2)}</TableCell>
+                                    <TableCell className="text-right text-red-600">-AED {(income.bookingFee || 0).toFixed(2)}</TableCell>
+                                    <TableCell className="text-right text-red-600">-AED {(income.commission || 0).toFixed(2)}</TableCell>
+                                    <TableCell className="text-right text-red-600">-AED {(income.fuelCost || 0).toFixed(2)}</TableCell>
                                 </TableRow>
                             )) : (
                                 <TableRow>
-                                    <TableCell colSpan={9} className="text-center h-24">No income data available.</TableCell>
+                                    <TableCell colSpan={10} className="text-center h-24">No income data available.</TableCell>
                                 </TableRow>
                             )}
                         </TableBody>
