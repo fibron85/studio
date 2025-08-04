@@ -41,18 +41,18 @@ export default function RegisterPage() {
   const onSubmit = async (data: RegisterFormValues) => {
     setLoading(true);
     try {
-      // Check if driverId is already taken
+      // Check if driverId or email is already taken
       const usersRef = collection(db, 'users');
-      const q = query(usersRef, where('driverId', '==', data.driverId));
-      const querySnapshot = await getDocs(q);
+      const driverIdQuery = query(usersRef, where('driverId', '==', data.driverId));
+      const driverIdSnapshot = await getDocs(driverIdQuery);
 
-      if (!querySnapshot.empty) {
+      if (!driverIdSnapshot.empty) {
         form.setError('driverId', { type: 'manual', message: 'This Driver ID is already taken.' });
         setLoading(false);
         return;
       }
-
-      // Create user in Firebase Auth
+      
+      // Create user in Firebase Auth. This will fail if the email is already in use.
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
       const user = userCredential.user;
 
@@ -70,14 +70,12 @@ export default function RegisterPage() {
       router.push('/login');
     } catch (error: any) {
        console.error(error);
-      let errorMessage = 'An unexpected error occurred. Please try again.';
       if (error.code === 'auth/email-already-in-use') {
-        errorMessage = 'This email address is already in use by another account.';
-        form.setError('email', { type: 'manual', message: errorMessage });
+        form.setError('email', { type: 'manual', message: 'This email address is already in use.' });
       } else {
          toast({
           title: 'Registration Failed',
-          description: errorMessage,
+          description: 'An unexpected error occurred. Please try again.',
           variant: 'destructive',
         });
       }
