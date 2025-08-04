@@ -46,9 +46,14 @@ export default function LoginPage() {
       const querySnapshot = await getDocs(q);
 
       if (querySnapshot.empty) {
-        // If driverId doesn't exist, throw an error that will be caught
-        // and displayed as the generic "invalid credential" message.
-         throw new Error('auth/invalid-credential');
+        // If driverId doesn't exist, show a generic "invalid credential" message.
+        toast({
+          title: 'Login Failed',
+          description: 'Invalid Driver ID or password.',
+          variant: 'destructive',
+        });
+        setLoading(false);
+        return;
       }
       
       const userDoc = querySnapshot.docs[0];
@@ -64,7 +69,7 @@ export default function LoginPage() {
       router.push('/dashboard');
     } catch (error: any) {
       console.error(error);
-      const errorMessage = error.message === 'auth/invalid-credential' || error.code === 'auth/invalid-credential'
+      const errorMessage = error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password'
         ? 'Invalid Driver ID or password.'
         : 'An unexpected error occurred. Please try again.';
 
