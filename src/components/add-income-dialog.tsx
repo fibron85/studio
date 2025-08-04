@@ -65,7 +65,6 @@ export default function AddIncomeDialog() {
   });
 
   const platform = form.watch("platform");
-  const amount = form.watch("amount") || 0;
   const distance = form.watch("distance") || 0;
   
   const watchedValues = form.watch();
@@ -73,8 +72,6 @@ export default function AddIncomeDialog() {
 
   useEffect(() => {
     if (platform === 'bolt') {
-        const commissionValue = amount * 0.2;
-        form.setValue('commission', parseFloat(commissionValue.toFixed(2)));
         form.setValue('airportFee', 20);
     } else {
       // Reset fields when platform is not Bolt
@@ -82,7 +79,7 @@ export default function AddIncomeDialog() {
       form.setValue('airportFee', 0);
       form.setValue('bookingFee', 0);
     }
-  }, [platform, amount, form]);
+  }, [platform, form]);
 
 
   useEffect(() => {
@@ -195,8 +192,8 @@ export default function AddIncomeDialog() {
                     <Input id="airportFee" type="number" step="0.01" placeholder="20.00" {...form.register('airportFee')} readOnly />
                 </div>
                 <div className="space-y-2 col-span-2">
-                    <Label htmlFor="commission">Commission</Label>
-                    <Input id="commission" type="number" step="0.01" placeholder="5.00" {...form.register('commission')} readOnly />
+                    <Label htmlFor="commission">Bolt Commission Fee</Label>
+                    <Input id="commission" type="number" step="0.01" placeholder="5.00" {...form.register('commission')} />
                 </div>
             </div>
           )}
