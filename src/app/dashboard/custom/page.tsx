@@ -9,11 +9,13 @@ import { DateRange } from 'react-day-picker';
 import { addDays, format, startOfMonth } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar as CalendarIcon } from 'lucide-react';
+import { Calendar as CalendarIcon, Download } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import type { Income, RidePlatform } from '@/lib/types';
+import * as XLSX from 'xlsx';
+
 
 const calculateNet = (amount: number, { salikFee = 0, airportFee = 0, commission = 0, bookingFee = 0, fuelCost = 0 }: { salikFee?: number, airportFee?: number, commission?: number, bookingFee?: number, fuelCost?: number }) => {
     return amount - salikFee - airportFee - commission - bookingFee - fuelCost;
@@ -48,6 +50,31 @@ export default function CustomReportPage() {
         acc.net += calculateNet(income.amount, income);
         return acc;
     }, { gross: 0, net: 0, salikFee: 0, airportFee: 0, bookingFee: 0, commission: 0, fuelCost: 0, rides: filteredIncomes.length });
+
+    const handleExport = () => {
+        if (!filteredIncomes.length) {
+            return;
+        }
+
+        const dataToExport = filteredIncomes.map(income => ({
+            'Platform': income.platform,
+            'Date': format(new Date(income.date), 'PPP'),
+            'Gross Amount': income.amount.toFixed(2),
+            'Distance (km)': income.distance?.toFixed(2) || 'N/A',
+            'Pickup Location': income.pickupLocation?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'N/A',
+            'Salik Fee': (income.salikFee || 0).toFixed(2),
+            'Airport Fee': (income.airportFee || 0).toFixed(2),
+            'Booking Fee': (income.bookingFee || 0).toFixed(2),
+            'Commission': (income.commission || 0).toFixed(2),
+            'Fuel Cost': (income.fuelCost || 0).toFixed(2),
+            'Net Income': calculateNet(income.amount, income).toFixed(2)
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Income Report');
+        XLSX.writeFile(workbook, `RideShare_Report_${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+    };
 
 
     return (
@@ -107,6 +134,9 @@ export default function CustomReportPage() {
                             <SelectItem value="bolt">Bolt</SelectItem>
                         </SelectContent>
                     </Select>
+                    <Button onClick={handleExport} disabled={filteredIncomes.length === 0}>
+                        <Download className="mr-2 h-4 w-4" /> Export to Excel
+                    </Button>
                 </CardContent>
             </Card>
             <Card>
