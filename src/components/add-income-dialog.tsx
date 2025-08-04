@@ -66,20 +66,27 @@ export default function AddIncomeDialog() {
 
   const platform = form.watch("platform");
   const distance = form.watch("distance") || 0;
+  const pickupLocation = form.watch("pickupLocation");
   
   const watchedValues = form.watch();
   const netIncome = (watchedValues.amount || 0) - (watchedValues.salikFee || 0) - (watchedValues.airportFee || 0) - (watchedValues.bookingFee || 0) - (watchedValues.commission || 0) - (watchedValues.fuelCost || 0);
 
   useEffect(() => {
-    if (platform === 'bolt') {
+    const isAirport = pickupLocation === 'airport_t1' || pickupLocation === 'airport_t2' || pickupLocation === 'airport_t3';
+    if (isAirport) {
         form.setValue('airportFee', 20);
+    } else {
+      form.setValue('airportFee', 0);
+    }
+
+    if (platform === 'bolt') {
+        // Keep bolt specific logic if any, or remove if not needed
     } else {
       // Reset fields when platform is not Bolt
       form.setValue('commission', 0);
-      form.setValue('airportFee', 0);
       form.setValue('bookingFee', 0);
     }
-  }, [platform, form]);
+  }, [platform, pickupLocation, form]);
 
 
   useEffect(() => {
@@ -97,6 +104,8 @@ export default function AddIncomeDialog() {
     form.reset({ date: new Date(), amount: 0, distance: 0, platform: undefined, salikFee: 0, airportFee: 0, bookingFee: 0, commission: 0, fuelCost: 0, pickupLocation: undefined });
     setOpen(false);
   };
+
+  const isAirportSelected = pickupLocation === 'airport_t1' || pickupLocation === 'airport_t2' || pickupLocation === 'airport_t3';
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -187,14 +196,17 @@ export default function AddIncomeDialog() {
                     <Label htmlFor="bookingFee">Booking Fee</Label>
                     <Input id="bookingFee" type="number" step="0.01" placeholder="10.00" {...form.register('bookingFee')} />
                 </div>
-                <div className="space-y-2">
-                    <Label htmlFor="airportFee">Airport Fee</Label>
-                    <Input id="airportFee" type="number" step="0.01" placeholder="20.00" {...form.register('airportFee')} readOnly />
-                </div>
                 <div className="space-y-2 col-span-2">
                     <Label htmlFor="commission">Bolt Commission Fee</Label>
                     <Input id="commission" type="number" step="0.01" placeholder="5.00" {...form.register('commission')} />
                 </div>
+            </div>
+          )}
+
+          {isAirportSelected && (
+             <div className="space-y-2">
+                <Label htmlFor="airportFee">Airport Fee</Label>
+                <Input id="airportFee" type="number" step="0.01" placeholder="20.00" {...form.register('airportFee')} readOnly />
             </div>
           )}
 
