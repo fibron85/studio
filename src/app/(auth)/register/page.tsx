@@ -19,7 +19,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { auth, db } from '@/lib/firebase';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { doc, setDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import Link from 'next/link';
 
 const registerSchema = z.object({
@@ -42,9 +42,11 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       // Check if driverId is already taken
-      const driverIdRef = doc(db, 'users', data.driverId);
-      const driverIdSnap = await getDoc(driverIdRef);
-      if (driverIdSnap.exists()) {
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, where('driverId', '==', data.driverId));
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
         throw new Error('This Driver ID is already taken. Please choose another one.');
       }
 
@@ -52,8 +54,8 @@ export default function RegisterPage() {
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
       const user = userCredential.user;
 
-      // Store user info (email and driverId) in Firestore
-      await setDoc(doc(db, 'users', data.driverId), {
+      // Store user info (email and driverId) in Firestore, using UID as doc ID
+      await setDoc(doc(db, 'users', user.uid), {
         uid: user.uid,
         email: data.email,
         driverId: data.driverId,
