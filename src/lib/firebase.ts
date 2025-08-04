@@ -4,12 +4,13 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  "apiKey": "mock-api-key",
-  "authDomain": "mock-auth-domain",
-  "projectId": "mock-project-id",
-  "storageBucket": "mock-storage-bucket",
-  "messagingSenderId": "mock-messaging-sender-id",
-  "appId": "mock-app-id"
+  "projectId": "rideshare-dashboard",
+  "appId": "1:199463080893:web:34bb3cdfb65df63cf0b8d4",
+  "storageBucket": "rideshare-dashboard.firebasestorage.app",
+  "apiKey": "AIzaSyAjKD1WMZbDTPcLX09ZcNrHItIvTTri4II",
+  "authDomain": "rideshare-dashboard.firebaseapp.com",
+  "measurementId": "",
+  "messagingSenderId": "199463080893"
 };
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
