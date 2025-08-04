@@ -40,12 +40,13 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginFormValues) => {
     setLoading(true);
     try {
-      // 1. Find email for driverId
+      // 1. Find user document by driverId in Firestore
       const usersRef = collection(db, 'users');
       const q = query(usersRef, where('driverId', '==', data.driverId));
       const querySnapshot = await getDocs(q);
 
       if (querySnapshot.empty) {
+        // If driverId doesn't exist, show a generic error message
         toast({
           title: 'Login Failed',
           description: 'Invalid Driver ID or password.',
@@ -59,6 +60,7 @@ export default function LoginPage() {
       const email = userDoc.data().email;
 
       // 2. Sign in with the found email and provided password.
+      // Firebase will handle the password check.
       await signInWithEmailAndPassword(auth, email, data.password);
       
       toast({
@@ -68,6 +70,8 @@ export default function LoginPage() {
       router.push('/dashboard');
     } catch (error: any) {
       console.error(error);
+      // Catch errors from signInWithEmailAndPassword (e.g., wrong password)
+      // and show a generic error.
       const errorMessage = 'Invalid Driver ID or password.';
       
       toast({
