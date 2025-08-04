@@ -163,31 +163,31 @@ export default function CustomReportPage() {
                             </TableRow>
                             <TableRow>
                                 <TableCell className="font-medium">Gross Income</TableCell>
-                                <TableCell className="text-right text-green-600">${summary.gross.toFixed(2)}</TableCell>
+                                <TableCell className="text-right text-green-600">AED {summary.gross.toFixed(2)}</TableCell>
                             </TableRow>
                             <TableRow>
                                 <TableCell>Salik Fee</TableCell>
-                                <TableCell className="text-right text-red-600">-${summary.salikFee.toFixed(2)}</TableCell>
+                                <TableCell className="text-right text-red-600">-AED {summary.salikFee.toFixed(2)}</TableCell>
                             </TableRow>
                              <TableRow>
                                 <TableCell>Airport Fee</TableCell>
-                                <TableCell className="text-right text-red-600">-${summary.airportFee.toFixed(2)}</TableCell>
+                                <TableCell className="text-right text-red-600">-AED {summary.airportFee.toFixed(2)}</TableCell>
                             </TableRow>
                              <TableRow>
                                 <TableCell>Booking Fee</TableCell>
-                                <TableCell className="text-right text-red-600">-${summary.bookingFee.toFixed(2)}</TableCell>
+                                <TableCell className="text-right text-red-600">-AED {summary.bookingFee.toFixed(2)}</TableCell>
                             </TableRow>
                              <TableRow>
                                 <TableCell>Commission</TableCell>
-                                <TableCell className="text-right text-red-600">-${summary.commission.toFixed(2)}</TableCell>
+                                <TableCell className="text-right text-red-600">-AED {summary.commission.toFixed(2)}</TableCell>
                             </TableRow>
                              <TableRow>
                                 <TableCell>Fuel Cost</TableCell>
-                                <TableCell className="text-right text-red-600">-${summary.fuelCost.toFixed(2)}</TableCell>
+                                <TableCell className="text-right text-red-600">-AED {summary.fuelCost.toFixed(2)}</TableCell>
                             </TableRow>
                              <TableRow className="font-bold bg-muted hover:bg-muted">
                                 <TableCell>Net Income</TableCell>
-                                <TableCell className="text-right">${summary.net.toFixed(2)}</TableCell>
+                                <TableCell className="text-right">AED {summary.net.toFixed(2)}</TableCell>
                             </TableRow>
                         </TableBody>
                     </Table>

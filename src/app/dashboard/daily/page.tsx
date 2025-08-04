@@ -89,13 +89,13 @@ export default function DailyReportPage() {
                                 <TableRow key={summary.date}>
                                     <TableCell className="font-medium">{format(new Date(summary.date), 'PPP')}</TableCell>
                                     <TableCell>{summary.count}</TableCell>
-                                    <TableCell className="text-right text-green-600">${summary.gross.toFixed(2)}</TableCell>
-                                    <TableCell className="text-right text-red-600">-${summary.salikFee.toFixed(2)}</TableCell>
-                                    <TableCell className="text-right text-red-600">-${summary.airportFee.toFixed(2)}</TableCell>
-                                    <TableCell className="text-right text-red-600">-${summary.bookingFee.toFixed(2)}</TableCell>
-                                    <TableCell className="text-right text-red-600">-${summary.commission.toFixed(2)}</TableCell>
-                                    <TableCell className="text-right text-red-600">-${summary.fuelCost.toFixed(2)}</TableCell>
-                                    <TableCell className="text-right font-bold">${summary.net.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right text-green-600">AED {summary.gross.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right text-red-600">-AED {summary.salikFee.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right text-red-600">-AED {summary.airportFee.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right text-red-600">-AED {summary.bookingFee.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right text-red-600">-AED {summary.commission.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right text-red-600">-AED {summary.fuelCost.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right font-bold">AED {summary.net.toFixed(2)}</TableCell>
                                 </TableRow>
                             )) : (
                                 <TableRow>

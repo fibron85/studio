@@ -77,7 +77,7 @@ export default function AddIncomeDialog() {
     if (isAirport) {
         form.setValue('airportFee', 20);
     } else {
-      if (pickupLocation) { // only reset if pickup location has a value and is not an airport
+      if (pickupLocation) { 
         form.setValue('airportFee', 0);
       }
     }
@@ -88,11 +88,8 @@ export default function AddIncomeDialog() {
       const commission = amount * 0.20;
       form.setValue('commission', parseFloat(commission.toFixed(2)));
     } else {
-      // Reset fields when platform is not Bolt, and also when form is reset
-      if (form.getValues('platform') !== 'bolt') {
-          form.setValue('commission', 0);
-          form.setValue('bookingFee', 0);
-      }
+      form.setValue('commission', 0);
+      form.setValue('bookingFee', 0);
     }
   }, [platform, amount, form]);
 
@@ -179,7 +176,7 @@ export default function AddIncomeDialog() {
           
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="amount">Gross Amount ($)</Label>
+              <Label htmlFor="amount">Gross Amount (AED)</Label>
               <Input id="amount" type="number" step="0.01" placeholder="25.50" {...form.register('amount')} />
               {form.formState.errors.amount && <p className="text-sm font-medium text-destructive">{form.formState.errors.amount.message}</p>}
             </div>
@@ -257,7 +254,7 @@ export default function AddIncomeDialog() {
 
           <div className="space-y-2 border-t pt-4">
             <Label>Net Income</Label>
-            <Input value={`$${netIncome.toFixed(2)}`} readOnly className="font-bold text-lg h-12 bg-muted" />
+            <Input value={`AED ${netIncome.toFixed(2)}`} readOnly className="font-bold text-lg h-12 bg-muted" />
           </div>
           
           <DialogFooter>

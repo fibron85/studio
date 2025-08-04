@@ -55,7 +55,7 @@ export default function DashboardPage() {
                         <DollarSign className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">${totalIncome.toFixed(2)}</div>
+                        <div className="text-2xl font-bold">AED {totalIncome.toFixed(2)}</div>
                     </CardContent>
                 </Card>
                 <Card>
@@ -64,7 +64,7 @@ export default function DashboardPage() {
                         <DollarSign className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">${monthlyIncome.toFixed(2)}</div>
+                        <div className="text-2xl font-bold">AED {monthlyIncome.toFixed(2)}</div>
                     </CardContent>
                 </Card>
                 <Card>
@@ -73,7 +73,7 @@ export default function DashboardPage() {
                         <DollarSign className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">${avgDailyIncome.toFixed(2)}</div>
+                        <div className="text-2xl font-bold">AED {avgDailyIncome.toFixed(2)}</div>
                     </CardContent>
                 </Card>
                 <Card>
@@ -107,8 +107,8 @@ export default function DashboardPage() {
                             {recentIncomes.length > 0 ? recentIncomes.map(income => (
                                 <TableRow key={income.id}>
                                     <TableCell className="font-medium capitalize">{income.platform}</TableCell>
-                                    <TableCell className="text-right">${income.amount.toFixed(2)}</TableCell>
-                                    <TableCell className="text-right">${calculateNet(income.amount, income).toFixed(2)}</TableCell>
+                                    <TableCell className="text-right">AED {income.amount.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right">AED {calculateNet(income.amount, income).toFixed(2)}</TableCell>
                                     <TableCell className="text-right">{income.distance ? `${income.distance.toFixed(1)} km` : '-'}</TableCell>
                                     <TableCell className="text-right">{format(new Date(income.date), 'PPP')}</TableCell>
                                 </TableRow>

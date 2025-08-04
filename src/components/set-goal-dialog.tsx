@@ -63,7 +63,7 @@ export default function SetGoalDialog() {
         </DialogHeader>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
           <div className="space-y-2">
-            <Label htmlFor="monthly">Monthly Goal ($)</Label>
+            <Label htmlFor="monthly">Monthly Goal (AED)</Label>
             <Input id="monthly" type="number" step="100" placeholder="2000" {...form.register('monthly')} />
             {form.formState.errors.monthly && <p className="text-sm font-medium text-destructive">{form.formState.errors.monthly.message}</p>}
           </div>
