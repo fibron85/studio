@@ -47,7 +47,9 @@ export default function RegisterPage() {
       const querySnapshot = await getDocs(q);
 
       if (!querySnapshot.empty) {
-        throw new Error('This Driver ID is already taken. Please choose another one.');
+        form.setError('driverId', { type: 'manual', message: 'This Driver ID is already taken.' });
+        setLoading(false);
+        return;
       }
 
       // Create user in Firebase Auth
@@ -68,14 +70,17 @@ export default function RegisterPage() {
       router.push('/login');
     } catch (error: any) {
        console.error(error);
-      const errorMessage = error.code === 'auth/email-already-in-use' 
-        ? 'This email address is already in use.'
-        : error.message;
-      toast({
-        title: 'Registration Failed',
-        description: errorMessage,
-        variant: 'destructive',
-      });
+      let errorMessage = 'An unexpected error occurred. Please try again.';
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = 'This email address is already in use by another account.';
+        form.setError('email', { type: 'manual', message: errorMessage });
+      } else {
+         toast({
+          title: 'Registration Failed',
+          description: errorMessage,
+          variant: 'destructive',
+        });
+      }
     } finally {
       setLoading(false);
     }
