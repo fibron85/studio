@@ -67,6 +67,7 @@ export default function AddIncomeDialog() {
   const platform = form.watch("platform");
   const distance = form.watch("distance") || 0;
   const pickupLocation = form.watch("pickupLocation");
+  const amount = form.watch("amount") || 0;
   
   const watchedValues = form.watch();
   const netIncome = (watchedValues.amount || 0) - (watchedValues.salikFee || 0) - (watchedValues.airportFee || 0) - (watchedValues.bookingFee || 0) - (watchedValues.commission || 0) - (watchedValues.fuelCost || 0);
@@ -80,13 +81,14 @@ export default function AddIncomeDialog() {
     }
 
     if (platform === 'bolt') {
-        // Keep bolt specific logic if any, or remove if not needed
+      const commission = amount * 0.20;
+      form.setValue('commission', parseFloat(commission.toFixed(2)));
     } else {
       // Reset fields when platform is not Bolt
       form.setValue('commission', 0);
       form.setValue('bookingFee', 0);
     }
-  }, [platform, pickupLocation, form]);
+  }, [platform, pickupLocation, amount, form]);
 
 
   useEffect(() => {
@@ -198,7 +200,7 @@ export default function AddIncomeDialog() {
                 </div>
                 <div className="space-y-2 col-span-2">
                     <Label htmlFor="commission">Bolt Commission Fee</Label>
-                    <Input id="commission" type="number" step="0.01" placeholder="5.00" {...form.register('commission')} />
+                    <Input id="commission" type="number" step="0.01" placeholder="5.00" {...form.register('commission')} readOnly/>
                 </div>
             </div>
           )}
