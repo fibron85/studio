@@ -7,7 +7,7 @@ import AddIncomeDialog from '@/components/add-income-dialog';
 import SetGoalDialog from '@/components/set-goal-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { format, startOfMonth, isWithinInterval } from 'date-fns';
+import { format, isWithinInterval, setDate, subMonths } from 'date-fns';
 
 const calculateNet = (amount: number, { salikFee = 0, airportFee = 0, commission = 0, bookingFee = 0, fuelCost = 0 }: { salikFee?: number, airportFee?: number, commission?: number, bookingFee?: number, fuelCost?: number }) => {
     return amount - salikFee - airportFee - commission - bookingFee - fuelCost;
@@ -21,12 +21,13 @@ export default function DashboardPage() {
     }
 
     const today = new Date();
-    const startOfCurrentMonth = startOfMonth(today);
+    const periodStart = today.getDate() >= 21 ? setDate(today, 21) : setDate(subMonths(today, 1), 21);
+    const periodEnd = today.getDate() >= 21 ? setDate(subMonths(today, -1), 20) : setDate(today, 20);
 
     const monthlyIncome = incomes
         .filter(income => {
             const incomeDate = new Date(income.date);
-            return isWithinInterval(incomeDate, { start: startOfCurrentMonth, end: today });
+            return isWithinInterval(incomeDate, { start: periodStart, end: periodEnd });
         })
         .reduce((acc, income) => acc + calculateNet(income.amount, income), 0);
     

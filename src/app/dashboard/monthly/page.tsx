@@ -35,10 +35,10 @@ export default function MonthlyReportPage() {
     const now = new Date();
     const monthlyData = Array.from({ length: 12 }).map((_, i) => {
         const monthOffset = 11 - i;
-        const endMonthDate = subMonths(now, monthOffset);
+        const baseMonth = subMonths(now, monthOffset);
         
-        const periodEnd = setDate(addMonths(endMonthDate, 1), 20);
-        const periodStart = setDate(endMonthDate, 21);
+        const periodStart = setDate(baseMonth, 21);
+        const periodEnd = setDate(addMonths(baseMonth, 1), 20);
 
         const monthIncomes = filteredIncomes.filter(inc => {
             const incomeDate = new Date(inc.date);
@@ -52,7 +52,15 @@ export default function MonthlyReportPage() {
         };
     });
 
-    const summary = filteredIncomes.reduce((acc, income) => {
+    const firstPeriodStart = setDate(subMonths(now, 11), 21);
+    const lastPeriodEnd = setDate(addMonths(now, 1), 20);
+
+    const summaryIncomes = filteredIncomes.filter(income => {
+        const incomeDate = new Date(income.date);
+        return incomeDate >= firstPeriodStart && incomeDate <= lastPeriodEnd;
+    });
+
+    const summary = summaryIncomes.reduce((acc, income) => {
         acc.gross += income.amount;
         acc.salikFee += income.salikFee || 0;
         acc.airportFee += income.airportFee || 0;
@@ -61,7 +69,7 @@ export default function MonthlyReportPage() {
         acc.fuelCost += income.fuelCost || 0;
         acc.net += calculateNet(income.amount, income);
         return acc;
-    }, { gross: 0, net: 0, salikFee: 0, airportFee: 0, bookingFee: 0, commission: 0, fuelCost: 0, rides: filteredIncomes.length });
+    }, { gross: 0, net: 0, salikFee: 0, airportFee: 0, bookingFee: 0, commission: 0, fuelCost: 0, rides: summaryIncomes.length });
 
 
     return (

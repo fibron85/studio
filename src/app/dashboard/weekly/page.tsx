@@ -45,7 +45,13 @@ export default function WeeklyReportPage() {
         };
     });
 
-    const summary = filteredIncomes.reduce((acc, income) => {
+    const summaryIncomes = filteredIncomes.filter(income => {
+        const incomeDate = new Date(income.date);
+        const twelveWeeksAgo = subWeeks(new Date(), 12);
+        return incomeDate >= twelveWeeksAgo;
+    });
+
+    const summary = summaryIncomes.reduce((acc, income) => {
         acc.gross += income.amount;
         acc.salikFee += income.salikFee || 0;
         acc.airportFee += income.airportFee || 0;
@@ -54,7 +60,7 @@ export default function WeeklyReportPage() {
         acc.fuelCost += income.fuelCost || 0;
         acc.net += calculateNet(income.amount, income);
         return acc;
-    }, { gross: 0, net: 0, salikFee: 0, airportFee: 0, bookingFee: 0, commission: 0, fuelCost: 0, rides: filteredIncomes.length });
+    }, { gross: 0, net: 0, salikFee: 0, airportFee: 0, bookingFee: 0, commission: 0, fuelCost: 0, rides: summaryIncomes.length });
 
 
     return (
