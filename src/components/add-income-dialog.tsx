@@ -77,18 +77,24 @@ export default function AddIncomeDialog() {
     if (isAirport) {
         form.setValue('airportFee', 20);
     } else {
-      form.setValue('airportFee', 0);
+      if (pickupLocation) { // only reset if pickup location has a value and is not an airport
+        form.setValue('airportFee', 0);
+      }
     }
+  }, [pickupLocation, form]);
 
+  useEffect(() => {
     if (platform === 'bolt') {
       const commission = amount * 0.20;
       form.setValue('commission', parseFloat(commission.toFixed(2)));
     } else {
-      // Reset fields when platform is not Bolt
-      form.setValue('commission', 0);
-      form.setValue('bookingFee', 0);
+      // Reset fields when platform is not Bolt, and also when form is reset
+      if (form.getValues('platform') !== 'bolt') {
+          form.setValue('commission', 0);
+          form.setValue('bookingFee', 0);
+      }
     }
-  }, [platform, pickupLocation, amount, form]);
+  }, [platform, amount, form]);
 
 
   useEffect(() => {
@@ -144,30 +150,32 @@ export default function AddIncomeDialog() {
               />
               {form.formState.errors.platform && <p className="text-sm font-medium text-destructive">{form.formState.errors.platform.message}</p>}
             </div>
-
-            <div className="space-y-2">
-                <Label htmlFor="pickupLocation">Pickup Location</Label>
-                <Controller
-                    control={form.control}
-                    name="pickupLocation"
-                    render={({ field }) => (
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <SelectTrigger>
-                        <SelectValue placeholder="Select a location" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="airport_t1">Airport T1</SelectItem>
-                            <SelectItem value="airport_t2">Airport T2</SelectItem>
-                            <SelectItem value="airport_t3">Airport T3</SelectItem>
-                            <SelectItem value="dubai_mall">Dubai Mall</SelectItem>
-                            <SelectItem value="atlantis_the_palm">Atlantis The Palm</SelectItem>
-                            <SelectItem value="global_village">Global Village</SelectItem>
-                            <SelectItem value="other">Other</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    )}
-                />
-            </div>
+          
+            {platform === 'bolt' && (
+              <div className="space-y-2">
+                  <Label htmlFor="pickupLocation">Pickup Location</Label>
+                  <Controller
+                      control={form.control}
+                      name="pickupLocation"
+                      render={({ field }) => (
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <SelectTrigger>
+                          <SelectValue placeholder="Select a location" />
+                          </SelectTrigger>
+                          <SelectContent>
+                              <SelectItem value="airport_t1">Airport T1</SelectItem>
+                              <SelectItem value="airport_t2">Airport T2</SelectItem>
+                              <SelectItem value="airport_t3">Airport T3</SelectItem>
+                              <SelectItem value="dubai_mall">Dubai Mall</SelectItem>
+                              <SelectItem value="atlantis_the_palm">Atlantis The Palm</SelectItem>
+                              <SelectItem value="global_village">Global Village</SelectItem>
+                              <SelectItem value="other">Other</SelectItem>
+                          </SelectContent>
+                      </Select>
+                      )}
+                  />
+              </div>
+            )}
           
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -198,7 +206,7 @@ export default function AddIncomeDialog() {
                     <Label htmlFor="bookingFee">Booking Fee</Label>
                     <Input id="bookingFee" type="number" step="0.01" placeholder="10.00" {...form.register('bookingFee')} />
                 </div>
-                <div className="space-y-2 col-span-2">
+                <div className="space-y-2">
                     <Label htmlFor="commission">Bolt Commission Fee</Label>
                     <Input id="commission" type="number" step="0.01" placeholder="5.00" {...form.register('commission')} readOnly/>
                 </div>
