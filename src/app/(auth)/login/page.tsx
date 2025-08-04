@@ -39,20 +39,22 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginFormValues) => {
     setLoading(true);
+    let email = '';
     try {
       // 1. Find email for driverId
       const usersRef = collection(db, 'users');
       const q = query(usersRef, where('driverId', '==', data.driverId));
       const querySnapshot = await getDocs(q);
 
-      if (querySnapshot.empty) {
-        throw new Error('Invalid Driver ID or password.');
+      if (!querySnapshot.empty) {
+        const userDoc = querySnapshot.docs[0];
+        email = userDoc.data().email;
       }
 
-      const userDoc = querySnapshot.docs[0];
-      const email = userDoc.data().email;
-
-      // 2. Sign in with email and password
+      // 2. Sign in with email and password.
+      // If the driverId was not found, email will be empty, 
+      // and signInWithEmailAndPassword will fail with 'auth/invalid-credential'
+      // which is the desired behavior for security.
       await signInWithEmailAndPassword(auth, email, data.password);
       
       toast({
