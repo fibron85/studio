@@ -39,22 +39,22 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginFormValues) => {
     setLoading(true);
-    let email = '';
     try {
       // 1. Find email for driverId
       const usersRef = collection(db, 'users');
       const q = query(usersRef, where('driverId', '==', data.driverId));
       const querySnapshot = await getDocs(q);
 
-      if (!querySnapshot.empty) {
-        const userDoc = querySnapshot.docs[0];
-        email = userDoc.data().email;
+      if (querySnapshot.empty) {
+        // If driverId doesn't exist, throw an error that will be caught
+        // and displayed as the generic "invalid credential" message.
+         throw new Error('auth/invalid-credential');
       }
+      
+      const userDoc = querySnapshot.docs[0];
+      const email = userDoc.data().email;
 
-      // 2. Sign in with email and password.
-      // If the driverId was not found, email will be empty, 
-      // and signInWithEmailAndPassword will fail with 'auth/invalid-credential'
-      // which is the desired behavior for security.
+      // 2. Sign in with the found email and provided password.
       await signInWithEmailAndPassword(auth, email, data.password);
       
       toast({
@@ -64,9 +64,9 @@ export default function LoginPage() {
       router.push('/dashboard');
     } catch (error: any) {
       console.error(error);
-      const errorMessage = error.code === 'auth/invalid-credential' 
+      const errorMessage = error.message === 'auth/invalid-credential' || error.code === 'auth/invalid-credential'
         ? 'Invalid Driver ID or password.'
-        : error.message;
+        : 'An unexpected error occurred. Please try again.';
 
       toast({
         title: 'Login Failed',
