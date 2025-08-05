@@ -21,8 +21,11 @@ import { Separator } from '@/components/ui/separator';
 const profileSchema = z.object({
   fullName: z.string().min(1, 'Full name is required'),
   email: z.string().email('Invalid email address'),
-  monthlyGoal: z.coerce.number().min(0, 'Monthly goal must be a positive number'),
-  boltCommission: z.coerce.number().min(0).max(100, 'Commission must be between 0 and 100'),
+});
+
+const appSettingsSchema = z.object({
+    monthlyGoal: z.coerce.number().min(0, 'Monthly goal must be a positive number'),
+    boltCommission: z.coerce.number().min(0).max(100, 'Commission must be between 0 and 100'),
 });
 
 const passwordSchema = z.object({
@@ -44,6 +47,7 @@ const customPickupLocationSchema = z.object({
 
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
+type AppSettingsFormValues = z.infer<typeof appSettingsSchema>;
 type PasswordFormValues = z.infer<typeof passwordSchema>;
 type CustomPlatformFormValues = z.infer<typeof customPlatformSchema>;
 type CustomPickupLocationFormValues = z.infer<typeof customPickupLocationSchema>;
@@ -54,10 +58,15 @@ export default function SettingsPage() {
   const { settings, updateSettings, loading, addCustomPlatform, removeCustomPlatform, addCustomPickupLocation, removeCustomPickupLocation } = useAppContext();
   const { toast } = useToast();
   const [profileLoading, setProfileLoading] = useState(false);
+  const [appSettingsLoading, setAppSettingsLoading] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
 
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
+  });
+
+  const appSettingsForm = useForm<AppSettingsFormValues>({
+      resolver: zodResolver(appSettingsSchema),
   });
 
   const passwordForm = useForm<PasswordFormValues>({
@@ -79,11 +88,13 @@ export default function SettingsPage() {
       profileForm.reset({
         fullName: settings.fullName || user.displayName || '',
         email: user.email || '',
+      });
+      appSettingsForm.reset({
         monthlyGoal: settings.monthlyGoal,
         boltCommission: settings.boltCommission,
       });
     }
-  }, [user, settings, profileForm]);
+  }, [user, settings, profileForm, appSettingsForm]);
 
   const onProfileSubmit = async (data: ProfileFormValues) => {
     if (!user) return;
@@ -92,8 +103,6 @@ export default function SettingsPage() {
     try {
       updateSettings({
         fullName: data.fullName,
-        monthlyGoal: data.monthlyGoal,
-        boltCommission: data.boltCommission,
       });
 
       if (user.displayName !== data.fullName) {
@@ -110,6 +119,23 @@ export default function SettingsPage() {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } finally {
       setProfileLoading(false);
+    }
+  };
+
+  const onAppSettingsSubmit = async (data: AppSettingsFormValues) => {
+    if (!user) return;
+    setAppSettingsLoading(true);
+
+    try {
+        await updateSettings({
+            monthlyGoal: data.monthlyGoal,
+            boltCommission: data.boltCommission,
+        });
+    } catch (error: any) {
+        console.error(error);
+        toast({ title: 'Error', description: 'Could not save app settings.', variant: 'destructive' });
+    } finally {
+        setAppSettingsLoading(false);
     }
   };
 
@@ -156,10 +182,10 @@ export default function SettingsPage() {
         <Card>
           <CardHeader>
             <CardTitle>Profile</CardTitle>
-            <CardDescription>Update your personal information and application settings.</CardDescription>
+            <CardDescription>Update your personal information.</CardDescription>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-4">
+          <form onSubmit={profileForm.handleSubmit(onProfileSubmit)}>
+            <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="fullName">Full Name</Label>
                 <Input id="fullName" {...profileForm.register('fullName')} />
@@ -170,23 +196,39 @@ export default function SettingsPage() {
                 <Input id="email" type="email" {...profileForm.register('email')} />
                  {profileForm.formState.errors.email && <p className="text-sm font-medium text-destructive">{profileForm.formState.errors.email.message}</p>}
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            </CardContent>
+             <CardFooter>
+                <Button type="submit" disabled={profileLoading}>
+                    {profileLoading ? 'Saving...' : 'Save Profile'}
+                </Button>
+            </CardFooter>
+          </form>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Application Settings</CardTitle>
+            <CardDescription>Customize your application preferences.</CardDescription>
+          </CardHeader>
+           <form onSubmit={appSettingsForm.handleSubmit(onAppSettingsSubmit)}>
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                     <Label htmlFor="monthlyGoal">Monthly Income Goal (AED)</Label>
-                    <Input id="monthlyGoal" type="number" {...profileForm.register('monthlyGoal')} />
-                    {profileForm.formState.errors.monthlyGoal && <p className="text-sm font-medium text-destructive">{profileForm.formState.errors.monthlyGoal.message}</p>}
+                    <Input id="monthlyGoal" type="number" {...appSettingsForm.register('monthlyGoal')} />
+                    {appSettingsForm.formState.errors.monthlyGoal && <p className="text-sm font-medium text-destructive">{appSettingsForm.formState.errors.monthlyGoal.message}</p>}
                 </div>
                  <div className="space-y-2">
                     <Label htmlFor="boltCommission">Bolt Commission (%)</Label>
-                    <Input id="boltCommission" type="number" {...profileForm.register('boltCommission')} />
-                    {profileForm.formState.errors.boltCommission && <p className="text-sm font-medium text-destructive">{profileForm.formState.errors.boltCommission.message}</p>}
+                    <Input id="boltCommission" type="number" {...appSettingsForm.register('boltCommission')} />
+                    {appSettingsForm.formState.errors.boltCommission && <p className="text-sm font-medium text-destructive">{appSettingsForm.formState.errors.boltCommission.message}</p>}
                 </div>
-              </div>
-              <Button type="submit" disabled={profileLoading}>
-                {profileLoading ? 'Saving...' : 'Save Profile'}
-              </Button>
-            </form>
-          </CardContent>
+            </CardContent>
+             <CardFooter>
+                 <Button type="submit" disabled={appSettingsLoading}>
+                    {appSettingsLoading ? 'Saving...' : 'Save Settings'}
+                </Button>
+            </CardFooter>
+          </form>
         </Card>
 
         <Card>
@@ -194,28 +236,30 @@ export default function SettingsPage() {
             <CardTitle>Change Password</CardTitle>
             <CardDescription>Update your login password.</CardDescription>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="currentPassword">Current Password</Label>
-                <Input id="currentPassword" type="password" {...passwordForm.register('currentPassword')} />
-                 {passwordForm.formState.errors.currentPassword && <p className="text-sm font-medium text-destructive">{passwordForm.formState.errors.currentPassword.message}</p>}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="newPassword">New Password</Label>
-                <Input id="newPassword" type="password" {...passwordForm.register('newPassword')} />
-                {passwordForm.formState.errors.newPassword && <p className="text-sm font-medium text-destructive">{passwordForm.formState.errors.newPassword.message}</p>}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                <Input id="confirmPassword" type="password" {...passwordForm.register('confirmPassword')} />
-                {passwordForm.formState.errors.confirmPassword && <p className="text-sm font-medium text-destructive">{passwordForm.formState.errors.confirmPassword.message}</p>}
-              </div>
-              <Button type="submit" disabled={passwordLoading}>
-                {passwordLoading ? 'Changing...' : 'Change Password'}
-              </Button>
-            </form>
-          </CardContent>
+          <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)}>
+            <CardContent className="space-y-4">
+                <div className="space-y-2">
+                    <Label htmlFor="currentPassword">Current Password</Label>
+                    <Input id="currentPassword" type="password" {...passwordForm.register('currentPassword')} />
+                    {passwordForm.formState.errors.currentPassword && <p className="text-sm font-medium text-destructive">{passwordForm.formState.errors.currentPassword.message}</p>}
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="newPassword">New Password</Label>
+                    <Input id="newPassword" type="password" {...passwordForm.register('newPassword')} />
+                    {passwordForm.formState.errors.newPassword && <p className="text-sm font-medium text-destructive">{passwordForm.formState.errors.newPassword.message}</p>}
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                    <Input id="confirmPassword" type="password" {...passwordForm.register('confirmPassword')} />
+                    {passwordForm.formState.errors.confirmPassword && <p className="text-sm font-medium text-destructive">{passwordForm.formState.errors.confirmPassword.message}</p>}
+                </div>
+            </CardContent>
+            <CardFooter>
+                 <Button type="submit" disabled={passwordLoading}>
+                    {passwordLoading ? 'Changing...' : 'Change Password'}
+                </Button>
+            </CardFooter>
+          </form>
         </Card>
 
         <Card>
