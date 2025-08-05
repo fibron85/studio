@@ -1,4 +1,4 @@
-export type RidePlatform = "uber" | "careem" | "bolt";
+export type RidePlatform = "uber" | "careem" | "bolt" | string;
 
 export type PickupLocation = 
   | "airport_t1"
@@ -7,7 +7,8 @@ export type PickupLocation =
   | "dubai_mall"
   | "atlantis_the_palm"
   | "global_village"
-  | "other";
+  | "other"
+  | string;
 
 export interface Income {
   id: string;
@@ -27,4 +28,6 @@ export interface AppSettings {
   monthlyGoal: number;
   boltCommission: number;
   fullName: string;
+  customPlatforms: string[];
+  customPickupLocations: string[];
 }

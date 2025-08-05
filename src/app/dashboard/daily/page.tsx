@@ -8,18 +8,23 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { format } from 'date-fns';
 import type { RidePlatform } from '@/lib/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
 
 const calculateNet = (amount: number, { salikFee = 0, airportFee = 0, commission = 0, bookingFee = 0, fuelCost = 0 }: { salikFee?: number, airportFee?: number, commission?: number, bookingFee?: number, fuelCost?: number }) => {
     return amount - salikFee - airportFee - commission - bookingFee - fuelCost;
 }
 
+const defaultPlatforms: RidePlatform[] = ['uber', 'careem', 'bolt'];
+
 export default function DailyReportPage() {
-    const { incomes, loading } = useAppContext();
+    const { incomes, loading, settings } = useAppContext();
     const [platform, setPlatform] = useState<RidePlatform | 'all'>('all');
 
     if (loading) {
         return <ReportSkeleton />;
     }
+
+    const allPlatforms = [...defaultPlatforms, ...settings.customPlatforms];
 
     const filteredIncomes = incomes
         .filter(income => platform === 'all' || income.platform === platform)
@@ -42,9 +47,9 @@ export default function DailyReportPage() {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all">All Platforms</SelectItem>
-                                <SelectItem value="uber">Uber</SelectItem>
-                                <SelectItem value="careem">Careem</SelectItem>
-                                <SelectItem value="bolt">Bolt</SelectItem>
+                                {defaultPlatforms.map(p => <SelectItem key={p} value={p} className="capitalize">{p}</SelectItem>)}
+                                {settings.customPlatforms.length > 0 && <Separator />}
+                                {settings.customPlatforms.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
                             </SelectContent>
                         </Select>
                     </div>

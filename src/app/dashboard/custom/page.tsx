@@ -15,14 +15,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { cn } from '@/lib/utils';
 import type { Income, RidePlatform } from '@/lib/types';
 import * as XLSX from 'xlsx';
-
+import { Separator } from '@/components/ui/separator';
 
 const calculateNet = (amount: number, { salikFee = 0, airportFee = 0, commission = 0, bookingFee = 0, fuelCost = 0 }: { salikFee?: number, airportFee?: number, commission?: number, bookingFee?: number, fuelCost?: number }) => {
     return amount - salikFee - airportFee - commission - bookingFee - fuelCost;
 }
 
+const defaultPlatforms: RidePlatform[] = ['uber', 'careem', 'bolt'];
+
 export default function CustomReportPage() {
-    const { incomes, loading } = useAppContext();
+    const { incomes, loading, settings } = useAppContext();
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
         from: startOfMonth(new Date()),
         to: new Date(),
@@ -32,6 +34,8 @@ export default function CustomReportPage() {
     if (loading) {
         return <ReportSkeleton />;
     }
+
+    const allPlatforms = [...defaultPlatforms, ...settings.customPlatforms];
 
     const filteredIncomes = incomes.filter(income => {
         const incomeDate = new Date(income.date);
@@ -129,9 +133,9 @@ export default function CustomReportPage() {
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">All Platforms</SelectItem>
-                            <SelectItem value="uber">Uber</SelectItem>
-                            <SelectItem value="careem">Careem</SelectItem>
-                            <SelectItem value="bolt">Bolt</SelectItem>
+                            {defaultPlatforms.map(p => <SelectItem key={p} value={p} className="capitalize">{p}</SelectItem>)}
+                            {settings.customPlatforms.length > 0 && <Separator />}
+                            {settings.customPlatforms.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
                         </SelectContent>
                     </Select>
                     <Button onClick={handleExport} disabled={filteredIncomes.length === 0}>

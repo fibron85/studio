@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,6 +14,9 @@ import { useAuth } from '@/contexts/auth-provider';
 import { auth } from '@/lib/firebase';
 import { updateProfile, updateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Trash2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 
 const profileSchema = z.object({
   fullName: z.string().min(1, 'Full name is required'),
@@ -31,12 +34,24 @@ const passwordSchema = z.object({
   path: ['confirmPassword'],
 });
 
+const customPlatformSchema = z.object({
+  platformName: z.string().min(1, 'Platform name is required'),
+});
+
+const customPickupLocationSchema = z.object({
+  locationName: z.string().min(1, 'Location name is required'),
+});
+
+
 type ProfileFormValues = z.infer<typeof profileSchema>;
 type PasswordFormValues = z.infer<typeof passwordSchema>;
+type CustomPlatformFormValues = z.infer<typeof customPlatformSchema>;
+type CustomPickupLocationFormValues = z.infer<typeof customPickupLocationSchema>;
+
 
 export default function SettingsPage() {
   const { user } = useAuth();
-  const { settings, updateSettings, loading } = useAppContext();
+  const { settings, updateSettings, loading, addCustomPlatform, removeCustomPlatform, addCustomPickupLocation, removeCustomPickupLocation } = useAppContext();
   const { toast } = useToast();
   const [profileLoading, setProfileLoading] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
@@ -47,6 +62,16 @@ export default function SettingsPage() {
 
   const passwordForm = useForm<PasswordFormValues>({
     resolver: zodResolver(passwordSchema),
+  });
+
+  const platformForm = useForm<CustomPlatformFormValues>({
+      resolver: zodResolver(customPlatformSchema),
+      defaultValues: { platformName: ''},
+  });
+
+  const locationForm = useForm<CustomPickupLocationFormValues>({
+      resolver: zodResolver(customPickupLocationSchema),
+      defaultValues: { locationName: ''},
   });
 
   useEffect(() => {
@@ -65,25 +90,18 @@ export default function SettingsPage() {
     setProfileLoading(true);
 
     try {
-      // Update Firestore settings
       updateSettings({
         fullName: data.fullName,
         monthlyGoal: data.monthlyGoal,
         boltCommission: data.boltCommission,
       });
 
-      // Update Firebase Auth profile
       if (user.displayName !== data.fullName) {
         await updateProfile(user, { displayName: data.fullName });
       }
 
-      // Update email if changed
       if (user.email !== data.email) {
          toast({ title: "Email Update", description: "A verification email will be required to change your email. This feature is not fully implemented in this demo.", variant: "default"});
-         // For a real app, you would need to re-authenticate the user before updating the email.
-         // const credential = promptForCredentials(); // This needs a secure implementation
-         // await reauthenticateWithCredential(user, credential);
-         // await updateEmail(user, data.email);
       }
 
       toast({ title: 'Success', description: 'Your profile has been updated.' });
@@ -115,6 +133,16 @@ export default function SettingsPage() {
     } finally {
         setPasswordLoading(false);
     }
+  };
+
+  const onPlatformSubmit = (data: CustomPlatformFormValues) => {
+      addCustomPlatform(data.platformName);
+      platformForm.reset();
+  };
+
+  const onLocationSubmit = (data: CustomPickupLocationFormValues) => {
+      addCustomPickupLocation(data.locationName);
+      locationForm.reset();
   };
 
   if (loading) {
@@ -189,6 +217,77 @@ export default function SettingsPage() {
             </form>
           </CardContent>
         </Card>
+
+        <Card>
+            <CardHeader>
+                <CardTitle>Custom Platforms</CardTitle>
+                <CardDescription>Add or remove your own ride-sharing platforms.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <form onSubmit={platformForm.handleSubmit(onPlatformSubmit)} className="flex items-end gap-2">
+                    <div className="flex-grow space-y-2">
+                        <Label htmlFor="platformName">New Platform Name</Label>
+                        <Input id="platformName" {...platformForm.register('platformName')} />
+                        {platformForm.formState.errors.platformName && <p className="text-sm font-medium text-destructive">{platformForm.formState.errors.platformName.message}</p>}
+                    </div>
+                    <Button type="submit">Add Platform</Button>
+                </form>
+            </CardContent>
+            {settings.customPlatforms.length > 0 && (
+              <>
+                <Separator className="my-4" />
+                <CardContent>
+                  <p className="text-sm font-medium mb-2">Your Platforms</p>
+                  <div className="flex flex-wrap gap-2">
+                      {settings.customPlatforms.map(platform => (
+                          <Badge key={platform} variant="secondary" className="flex items-center gap-2">
+                              {platform}
+                              <Button variant="ghost" size="icon" className="h-4 w-4" onClick={() => removeCustomPlatform(platform)}>
+                                  <Trash2 className="h-3 w-3" />
+                              </Button>
+                          </Badge>
+                      ))}
+                  </div>
+                </CardContent>
+              </>
+            )}
+        </Card>
+
+         <Card>
+            <CardHeader>
+                <CardTitle>Custom Pickup Locations</CardTitle>
+                <CardDescription>Add or remove your own pickup locations.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <form onSubmit={locationForm.handleSubmit(onLocationSubmit)} className="flex items-end gap-2">
+                    <div className="flex-grow space-y-2">
+                        <Label htmlFor="locationName">New Location Name</Label>
+                        <Input id="locationName" {...locationForm.register('locationName')} />
+                         {locationForm.formState.errors.locationName && <p className="text-sm font-medium text-destructive">{locationForm.formState.errors.locationName.message}</p>}
+                    </div>
+                    <Button type="submit">Add Location</Button>
+                </form>
+            </CardContent>
+             {settings.customPickupLocations.length > 0 && (
+                <>
+                  <Separator className="my-4" />
+                  <CardContent>
+                    <p className="text-sm font-medium mb-2">Your Locations</p>
+                    <div className="flex flex-wrap gap-2">
+                        {settings.customPickupLocations.map(location => (
+                             <Badge key={location} variant="secondary" className="flex items-center gap-2">
+                                {location}
+                                <Button variant="ghost" size="icon" className="h-4 w-4" onClick={() => removeCustomPickupLocation(location)}>
+                                    <Trash2 className="h-3 w-3" />
+                                </Button>
+                            </Badge>
+                        ))}
+                    </div>
+                  </CardContent>
+                </>
+            )}
+        </Card>
+
       </div>
     </div>
   );

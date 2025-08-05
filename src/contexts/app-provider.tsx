@@ -5,13 +5,17 @@ import type { Income, AppSettings } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from './auth-provider';
 import { db } from '@/lib/firebase';
-import { collection, doc, getDoc, getDocs, setDoc, query, orderBy, updateDoc } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, setDoc, query, orderBy, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 
 interface AppContextType {
   incomes: Income[];
   settings: AppSettings;
   addIncome: (income: Omit<Income, 'id'>) => void;
-  updateSettings: (settings: Partial<AppSettings>) => void;
+  updateSettings: (settings: Partial<Pick<AppSettings, 'monthlyGoal' | 'boltCommission' | 'fullName'>>) => void;
+  addCustomPlatform: (platform: string) => void;
+  removeCustomPlatform: (platform: string) => void;
+  addCustomPickupLocation: (location: string) => void;
+  removeCustomPickupLocation: (location: string) => void;
   loading: boolean;
 }
 
@@ -21,6 +25,8 @@ const defaultSettings: AppSettings = {
     monthlyGoal: 2000,
     boltCommission: 20,
     fullName: '',
+    customPlatforms: [],
+    customPickupLocations: [],
 };
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
@@ -50,6 +56,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             monthlyGoal: data.monthlyGoal || defaultSettings.monthlyGoal,
             boltCommission: data.boltCommission || defaultSettings.boltCommission,
             fullName: data.fullName || user.displayName || defaultSettings.fullName,
+            customPlatforms: data.customPlatforms || [],
+            customPickupLocations: data.customPickupLocations || [],
           });
         } else {
              setSettings(prev => ({ ...prev, fullName: user.displayName || '' }));
@@ -99,7 +107,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const updateSettings = async (newSettings: Partial<AppSettings>) => {
+  const updateSettings = async (newSettings: Partial<Pick<AppSettings, 'monthlyGoal' | 'boltCommission' | 'fullName'>>) => {
     if (!user) return;
     try {
       const settingsRef = doc(db, 'users', user.uid);
@@ -119,11 +127,68 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const addCustomPlatform = async (platform: string) => {
+    if (!user || !platform) return;
+    try {
+      const settingsRef = doc(db, 'users', user.uid);
+      await updateDoc(settingsRef, { customPlatforms: arrayUnion(platform) });
+      setSettings(prev => ({...prev, customPlatforms: [...prev.customPlatforms, platform]}));
+      toast({ title: "Success", description: "Platform added." });
+    } catch (error) {
+      console.error("Error adding platform: ", error);
+      toast({ title: "Error", description: "Could not add platform.", variant: "destructive" });
+    }
+  };
+
+  const removeCustomPlatform = async (platform: string) => {
+    if (!user || !platform) return;
+    try {
+      const settingsRef = doc(db, 'users', user.uid);
+      await updateDoc(settingsRef, { customPlatforms: arrayRemove(platform) });
+      setSettings(prev => ({...prev, customPlatforms: prev.customPlatforms.filter(p => p !== platform)}));
+      toast({ title: "Success", description: "Platform removed." });
+    } catch (error) {
+      console.error("Error removing platform: ", error);
+      toast({ title: "Error", description: "Could not remove platform.", variant: "destructive" });
+    }
+  };
+
+  const addCustomPickupLocation = async (location: string) => {
+     if (!user || !location) return;
+    try {
+      const settingsRef = doc(db, 'users', user.uid);
+      await updateDoc(settingsRef, { customPickupLocations: arrayUnion(location) });
+      setSettings(prev => ({...prev, customPickupLocations: [...prev.customPickupLocations, location]}));
+      toast({ title: "Success", description: "Pickup location added." });
+    } catch (error) {
+      console.error("Error adding pickup location: ", error);
+      toast({ title: "Error", description: "Could not add pickup location.", variant: "destructive" });
+    }
+  };
+
+  const removeCustomPickupLocation = async (location: string) => {
+    if (!user || !location) return;
+    try {
+      const settingsRef = doc(db, 'users', user.uid);
+      await updateDoc(settingsRef, { customPickupLocations: arrayRemove(location) });
+      setSettings(prev => ({...prev, customPickupLocations: prev.customPickupLocations.filter(l => l !== location)}));
+      toast({ title: "Success", description: "Pickup location removed." });
+    } catch (error) {
+      console.error("Error removing pickup location: ", error);
+      toast({ title: "Error", description: "Could not remove pickup location.", variant: "destructive" });
+    }
+  };
+
+
   const appContextValue = {
     incomes,
     settings,
     addIncome,
     updateSettings,
+    addCustomPlatform,
+    removeCustomPlatform,
+    addCustomPickupLocation,
+    removeCustomPickupLocation,
     loading: loading || authLoading
   }
 

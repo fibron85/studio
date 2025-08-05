@@ -30,14 +30,15 @@ import { Popover, PopoverTrigger, PopoverContent } from './ui/popover';
 import { Calendar } from './ui/calendar';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import type { PickupLocation } from '@/lib/types';
+import type { PickupLocation, RidePlatform } from '@/lib/types';
+import { Separator } from './ui/separator';
 
 const incomeSchema = z.object({
-  platform: z.enum(['uber', 'careem', 'bolt'], { required_error: "Please select a platform."}),
+  platform: z.string({ required_error: "Please select a platform."}),
   amount: z.coerce.number().min(0.01, 'Amount must be greater than 0'),
   distance: z.coerce.number().optional(),
   date: z.date(),
-  pickupLocation: z.enum(["airport_t1", "airport_t2", "airport_t3", "dubai_mall", "atlantis_the_palm", "global_village", "other"]).optional(),
+  pickupLocation: z.string().optional(),
   salikFee: z.coerce.number().optional(),
   airportFee: z.coerce.number().optional(),
   bookingFee: z.coerce.number().optional(),
@@ -47,9 +48,16 @@ const incomeSchema = z.object({
 
 type IncomeFormValues = z.infer<typeof incomeSchema>;
 
+const defaultPlatforms: RidePlatform[] = ['uber', 'careem', 'bolt'];
+const defaultPickupLocations: PickupLocation[] = ["airport_t1", "airport_t2", "airport_t3", "dubai_mall", "atlantis_the_palm", "global_village", "other"];
+
 export default function AddIncomeDialog() {
   const [open, setOpen] = useState(false);
   const { addIncome, settings } = useAppContext();
+  
+  const allPlatforms = [...defaultPlatforms, ...settings.customPlatforms];
+  const allPickupLocations = [...defaultPickupLocations, ...settings.customPickupLocations];
+
   const form = useForm<IncomeFormValues>({
     resolver: zodResolver(incomeSchema),
     defaultValues: {
@@ -105,7 +113,7 @@ export default function AddIncomeDialog() {
 
 
   const onSubmit = (data: IncomeFormValues) => {
-    addIncome({ ...data, date: data.date.toISOString() });
+    addIncome({ ...data, date: data.date.toISOString(), pickupLocation: data.pickupLocation as PickupLocation });
     form.reset({ date: new Date(), amount: 0, distance: 0, platform: undefined, salikFee: 0, airportFee: 0, bookingFee: 0, commission: 0, fuelCost: 0, pickupLocation: undefined });
     setOpen(false);
   };
@@ -138,9 +146,9 @@ export default function AddIncomeDialog() {
                       <SelectValue placeholder="Select a platform" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="uber">Uber</SelectItem>
-                      <SelectItem value="careem">Careem</SelectItem>
-                      <SelectItem value="bolt">Bolt</SelectItem>
+                      {defaultPlatforms.map(p => <SelectItem key={p} value={p} className="capitalize">{p}</SelectItem>)}
+                      {settings.customPlatforms.length > 0 && <Separator />}
+                      {settings.customPlatforms.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 )}
@@ -160,13 +168,9 @@ export default function AddIncomeDialog() {
                           <SelectValue placeholder="Select a location" />
                           </SelectTrigger>
                           <SelectContent>
-                              <SelectItem value="airport_t1">Airport T1</SelectItem>
-                              <SelectItem value="airport_t2">Airport T2</SelectItem>
-                              <SelectItem value="airport_t3">Airport T3</SelectItem>
-                              <SelectItem value="dubai_mall">Dubai Mall</SelectItem>
-                              <SelectItem value="atlantis_the_palm">Atlantis The Palm</SelectItem>
-                              <SelectItem value="global_village">Global Village</SelectItem>
-                              <SelectItem value="other">Other</SelectItem>
+                              {defaultPickupLocations.map(l => <SelectItem key={l} value={l} className="capitalize">{l.replace(/_/g, ' ')}</SelectItem>)}
+                              {settings.customPickupLocations.length > 0 && <Separator />}
+                              {settings.customPickupLocations.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
                           </SelectContent>
                       </Select>
                       )}
