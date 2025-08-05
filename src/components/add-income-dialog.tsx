@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -115,7 +116,7 @@ export default function AddIncomeDialog() {
 
 
   const onSubmit = (data: IncomeFormValues) => {
-    addIncome({ ...data, date: data.date.toISOString(), pickupLocation: data.pickupLocation as PickupLocation, paymentMethod: data.paymentMethod as PaymentMethod });
+    addIncome({ ...data, date: data.date.toISOString(), pickupLocation: (data.pickupLocation || null) as PickupLocation, paymentMethod: (data.paymentMethod || null) as PaymentMethod });
     form.reset({ date: new Date(), amount: 0, distance: 0, platform: undefined, salikFee: 0, airportFee: 0, bookingFee: 0, commission: 0, fuelCost: 0, pickupLocation: undefined, paymentMethod: undefined });
     setOpen(false);
   };
