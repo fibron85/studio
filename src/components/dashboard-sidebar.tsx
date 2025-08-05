@@ -9,12 +9,13 @@ import {
     SidebarMenuItem,
     SidebarMenuButton,
 } from '@/components/ui/sidebar';
-import { LayoutDashboard, CalendarDays, BarChart3, LineChart, FileText, Settings } from 'lucide-react';
+import { LayoutDashboard, CalendarDays, BarChart3, LineChart, FileText, Settings, List } from 'lucide-react';
 import Logo from './logo';
 
 const navItems = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/dashboard/daily', label: 'Daily', icon: CalendarDays },
+    { href: '/dashboard/daily', label: 'Daily Report', icon: CalendarDays },
+    { href: '/dashboard/all-rides', label: 'All Rides', icon: List },
     { href: '/dashboard/weekly', label: 'Weekly Reports', icon: BarChart3 },
     { href: '/dashboard/monthly', label: 'Monthly Reports', icon: LineChart },
     { href: '/dashboard/custom', label: 'Custom Report', icon: FileText },

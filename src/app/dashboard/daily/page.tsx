@@ -5,10 +5,17 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { useAppContext } from '@/contexts/app-provider';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { format } from 'date-fns';
+import { format, startOfToday, startOfYesterday, isEqual } from 'date-fns';
+import { utcToZonedTime } from 'date-fns-tz';
 import type { RidePlatform } from '@/lib/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+import { CalendarIcon } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import { cn } from '@/lib/utils';
+import { DayPicker } from 'react-day-picker';
 
 const calculateNet = (amount: number, { salikFee = 0, airportFee = 0, commission = 0, bookingFee = 0, fuelCost = 0 }: { salikFee?: number, airportFee?: number, commission?: number, bookingFee?: number, fuelCost?: number }) => {
     return amount - salikFee - airportFee - commission - bookingFee - fuelCost;
@@ -16,31 +23,94 @@ const calculateNet = (amount: number, { salikFee = 0, airportFee = 0, commission
 
 const defaultPlatforms: RidePlatform[] = ['bolt', 'uber', 'careem', 'dtc'];
 
+const timeZone = 'Asia/Dubai';
+
 export default function DailyReportPage() {
     const { incomes, loading, settings } = useAppContext();
     const [platform, setPlatform] = useState<RidePlatform | 'all'>('all');
+    const [selectedDate, setSelectedDate] = useState<Date | undefined>(startOfToday());
 
     if (loading) {
         return <ReportSkeleton />;
     }
 
-    const allPlatforms = [...defaultPlatforms, ...settings.customPlatforms];
+    const getDayStart = (date: Date) => {
+        return utcToZonedTime(date, timeZone);
+    };
 
     const filteredIncomes = incomes
-        .filter(income => platform === 'all' || income.platform === platform)
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        .filter(income => {
+            if (!selectedDate) return false;
+            const incomeDate = new Date(income.date);
+            const zonedIncomeDate = getDayStart(incomeDate);
+            const zonedSelectedDate = getDayStart(selectedDate);
+            const isSameDay = zonedIncomeDate.getFullYear() === zonedSelectedDate.getFullYear() &&
+                              zonedIncomeDate.getMonth() === zonedSelectedDate.getMonth() &&
+                              zonedIncomeDate.getDate() === zonedSelectedDate.getDate();
 
+            const isPlatformMatch = platform === 'all' || income.platform === platform;
+            return isSameDay && isPlatformMatch;
+        })
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     return (
         <div className="flex-1 space-y-4 p-4 md:p-8 pt-0 md:pt-6">
-            <h2 className="text-3xl font-bold tracking-tight">Daily Rides Log</h2>
+            <h2 className="text-3xl font-bold tracking-tight">Daily Report</h2>
             <Card>
                 <CardHeader>
-                    <CardTitle>All Rides</CardTitle>
-                    <CardDescription>A detailed log of all your recorded rides.</CardDescription>
+                    <CardTitle>Daily Rides</CardTitle>
+                    <CardDescription>A detailed log of rides for the selected date.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    <div className="flex justify-start">
+                    <div className="flex flex-col md:flex-row gap-4">
+                        <Select
+                            value={
+                                selectedDate
+                                    ? isEqual(selectedDate, startOfToday())
+                                        ? 'today'
+                                        : isEqual(selectedDate, startOfYesterday())
+                                            ? 'yesterday'
+                                            : 'custom'
+                                    : ''
+                            }
+                            onValueChange={(value) => {
+                                if (value === 'today') setSelectedDate(startOfToday());
+                                if (value === 'yesterday') setSelectedDate(startOfYesterday());
+                            }}
+                        >
+                            <SelectTrigger className="w-full md:w-[180px]">
+                                <SelectValue placeholder="Select a date range" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="today">Today</SelectItem>
+                                <SelectItem value="yesterday">Yesterday</SelectItem>
+                                <SelectItem value="custom">Custom Date</SelectItem>
+                            </SelectContent>
+                        </Select>
+
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant={"outline"}
+                                    className={cn(
+                                        "w-full md:w-[240px] justify-start text-left font-normal",
+                                        !selectedDate && "text-muted-foreground"
+                                    )}
+                                >
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {selectedDate ? format(selectedDate, 'PPP') : <span>Pick a date</span>}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar
+                                    mode="single"
+                                    selected={selectedDate}
+                                    onSelect={(date) => setSelectedDate(date || undefined)}
+                                    initialFocus
+                                />
+                            </PopoverContent>
+                        </Popover>
+                        
                         <Select value={platform} onValueChange={(value) => setPlatform(value as RidePlatform | 'all')}>
                             <SelectTrigger className="w-full md:w-[180px]">
                                 <SelectValue placeholder="Select Platform" />
@@ -72,7 +142,7 @@ export default function DailyReportPage() {
                         <TableBody>
                             {filteredIncomes.length > 0 ? filteredIncomes.map(income => (
                                 <TableRow key={income.id}>
-                                    <TableCell className="font-medium whitespace-nowrap">{format(new Date(income.date), 'PPP')}</TableCell>
+                                    <TableCell className="font-medium whitespace-nowrap">{format(new Date(income.date), 'p')}</TableCell>
                                     <TableCell className="capitalize">{income.platform.toUpperCase()}</TableCell>
                                     <TableCell className="capitalize">{income.paymentMethod?.replace(/_/g, ' ') || 'N/A'}</TableCell>
                                     <TableCell className="text-right text-green-600">AED {income.amount.toFixed(2)}</TableCell>
@@ -86,7 +156,7 @@ export default function DailyReportPage() {
                                 </TableRow>
                             )) : (
                                 <TableRow>
-                                    <TableCell colSpan={11} className="text-center h-24">No income data available.</TableCell>
+                                    <TableCell colSpan={11} className="text-center h-24">No income data available for this day.</TableCell>
                                 </TableRow>
                             )}
                         </TableBody>
