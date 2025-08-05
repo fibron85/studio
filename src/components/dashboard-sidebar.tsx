@@ -9,7 +9,7 @@ import {
     SidebarMenuItem,
     SidebarMenuButton,
 } from '@/components/ui/sidebar';
-import { LayoutDashboard, CalendarDays, BarChart3, LineChart, FileText, Settings, List } from 'lucide-react';
+import { LayoutDashboard, CalendarDays, BarChart3, LineChart, FileText, Settings, List, Wallet } from 'lucide-react';
 import Logo from './logo';
 
 const navItems = [
@@ -18,6 +18,7 @@ const navItems = [
     { href: '/dashboard/all-rides', label: 'All Rides', icon: List },
     { href: '/dashboard/weekly', label: 'Weekly Reports', icon: BarChart3 },
     { href: '/dashboard/monthly', label: 'Monthly Reports', icon: LineChart },
+    { href: '/dashboard/payment-summary', label: 'Payment Summary', icon: Wallet },
     { href: '/dashboard/custom', label: 'Custom Report', icon: FileText },
     { href: '/dashboard/settings', label: 'Settings', icon: Settings },
 ]
