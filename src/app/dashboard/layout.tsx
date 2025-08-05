@@ -49,7 +49,8 @@ export default function DashboardLayout({
               {children}
             </main>
             <footer className="py-4 px-6 text-center text-sm text-muted-foreground">
-              Apps Developed By Md Fakhrul Islam DTC ID 2221508
+              <p>Apps Developed By Md Fakhrul Islam DTC ID 2221508</p>
+              <p>This App is under development and still on Test.</p>
             </footer>
         </SidebarInset>
       </SidebarProvider>
