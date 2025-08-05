@@ -58,7 +58,7 @@ export default function AddIncomeDialog() {
   const [open, setOpen] = useState(false);
   const { addIncome, settings } = useAppContext();
   
-  const allPlatforms = [...defaultPlatforms, ...settings.customPlatforms];
+  const allPlatforms = [ ...settings.customPlatforms, ...defaultPlatforms];
   const allPickupLocations = [...defaultPickupLocations, ...settings.customPickupLocations];
 
   const form = useForm<IncomeFormValues>({
@@ -116,7 +116,13 @@ export default function AddIncomeDialog() {
 
 
   const onSubmit = (data: IncomeFormValues) => {
-    addIncome({ ...data, date: data.date.toISOString(), pickupLocation: (data.pickupLocation || null) as PickupLocation, paymentMethod: (data.paymentMethod || null) as PaymentMethod });
+    const submissionData = {
+        ...data,
+        date: data.date.toISOString(),
+        pickupLocation: (data.pickupLocation || null) as PickupLocation | null,
+        paymentMethod: (data.paymentMethod || null) as PaymentMethod | null,
+    };
+    addIncome(submissionData);
     form.reset({ date: new Date(), amount: 0, distance: 0, platform: undefined, salikFee: 0, airportFee: 0, bookingFee: 0, commission: 0, fuelCost: 0, pickupLocation: undefined, paymentMethod: undefined });
     setOpen(false);
   };
@@ -150,7 +156,7 @@ export default function AddIncomeDialog() {
                         <SelectValue placeholder="Select a platform" />
                       </SelectTrigger>
                       <SelectContent>
-                        {allPlatforms.map(p => <SelectItem key={p} value={p} className="capitalize">{p.replace(/_/g, ' ')}</SelectItem>)}
+                        {defaultPlatforms.map(p => <SelectItem key={p} value={p} className="capitalize">{p.replace(/_/g, ' ')}</SelectItem>)}
                         {settings.customPlatforms.length > 0 && <Separator />}
                         {settings.customPlatforms.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
                       </SelectContent>
