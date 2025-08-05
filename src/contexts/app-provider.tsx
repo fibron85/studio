@@ -11,7 +11,7 @@ interface AppContextType {
   incomes: Income[];
   settings: AppSettings;
   addIncome: (income: Omit<Income, 'id'>) => void;
-  updateSettings: (settings: Partial<Pick<AppSettings, 'monthlyGoal' | 'boltCommission' | 'fullName'>>) => void;
+  updateSettings: (settings: Partial<Pick<AppSettings, 'monthlyGoal' | 'boltCommission' | 'fullName' | 'fuelCostPerKm'>>) => void;
   addCustomPlatform: (platform: string) => void;
   removeCustomPlatform: (platform: string) => void;
   addCustomPickupLocation: (location: string) => void;
@@ -27,6 +27,7 @@ const defaultSettings: AppSettings = {
     fullName: '',
     customPlatforms: [],
     customPickupLocations: [],
+    fuelCostPerKm: 0.29,
 };
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
@@ -58,6 +59,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             fullName: data.fullName || user.displayName || defaultSettings.fullName,
             customPlatforms: data.customPlatforms || [],
             customPickupLocations: data.customPickupLocations || [],
+            fuelCostPerKm: data.fuelCostPerKm ?? defaultSettings.fuelCostPerKm,
           });
         } else {
              setSettings(prev => ({ ...prev, fullName: user.displayName || '' }));
@@ -107,7 +109,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const updateSettings = async (newSettings: Partial<Pick<AppSettings, 'monthlyGoal' | 'boltCommission' | 'fullName'>>) => {
+  const updateSettings = async (newSettings: Partial<Pick<AppSettings, 'monthlyGoal' | 'boltCommission' | 'fullName' | 'fuelCostPerKm'>>) => {
     if (!user) return;
     try {
       const settingsRef = doc(db, 'users', user.uid);

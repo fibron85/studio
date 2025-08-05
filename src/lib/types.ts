@@ -17,8 +17,8 @@ export interface Income {
   platform: RidePlatform;
   amount: number;
   date: string; // ISO string
-  paymentMethod?: PaymentMethod;
-  pickupLocation?: PickupLocation;
+  paymentMethod?: PaymentMethod | null;
+  pickupLocation?: PickupLocation | null;
   salikFee?: number;
   airportFee?: number;
   bookingFee?: number;
@@ -33,4 +33,5 @@ export interface AppSettings {
   fullName: string;
   customPlatforms: string[];
   customPickupLocations: string[];
+  fuelCostPerKm: number;
 }

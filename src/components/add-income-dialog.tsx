@@ -58,7 +58,7 @@ export default function AddIncomeDialog() {
   const [open, setOpen] = useState(false);
   const { addIncome, settings } = useAppContext();
   
-  const allPlatforms = [ ...settings.customPlatforms, ...defaultPlatforms];
+  const allPlatforms = [ ...defaultPlatforms, ...settings.customPlatforms];
   const allPickupLocations = [...defaultPickupLocations, ...settings.customPickupLocations];
 
   const form = useForm<IncomeFormValues>({
@@ -106,13 +106,13 @@ export default function AddIncomeDialog() {
 
 
   useEffect(() => {
-    if (distance > 0) {
-      const fuelCost = distance * 0.29;
+    if (distance > 0 && settings.fuelCostPerKm > 0) {
+      const fuelCost = distance * settings.fuelCostPerKm;
       form.setValue('fuelCost', parseFloat(fuelCost.toFixed(2)));
     } else {
       form.setValue('fuelCost', 0);
     }
-  }, [distance, form]);
+  }, [distance, settings.fuelCostPerKm, form]);
 
 
   const onSubmit = (data: IncomeFormValues) => {

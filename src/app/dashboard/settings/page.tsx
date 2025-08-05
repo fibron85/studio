@@ -26,6 +26,7 @@ const profileSchema = z.object({
 const appSettingsSchema = z.object({
     monthlyGoal: z.coerce.number().min(0, 'Monthly goal must be a positive number'),
     boltCommission: z.coerce.number().min(0).max(100, 'Commission must be between 0 and 100'),
+    fuelCostPerKm: z.coerce.number().min(0, 'Fuel cost must be a positive number'),
 });
 
 const passwordSchema = z.object({
@@ -92,6 +93,7 @@ export default function SettingsPage() {
       appSettingsForm.reset({
         monthlyGoal: settings.monthlyGoal,
         boltCommission: settings.boltCommission,
+        fuelCostPerKm: settings.fuelCostPerKm,
       });
     }
   }, [user, settings, profileForm, appSettingsForm]);
@@ -130,6 +132,7 @@ export default function SettingsPage() {
         await updateSettings({
             monthlyGoal: data.monthlyGoal,
             boltCommission: data.boltCommission,
+            fuelCostPerKm: data.fuelCostPerKm,
         });
     } catch (error: any) {
         console.error(error);
@@ -211,7 +214,7 @@ export default function SettingsPage() {
             <CardDescription>Customize your application preferences.</CardDescription>
           </CardHeader>
            <form onSubmit={appSettingsForm.handleSubmit(onAppSettingsSubmit)}>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                     <Label htmlFor="monthlyGoal">Monthly Income Goal (AED)</Label>
                     <Input id="monthlyGoal" type="number" {...appSettingsForm.register('monthlyGoal')} />
@@ -221,6 +224,11 @@ export default function SettingsPage() {
                     <Label htmlFor="boltCommission">Bolt Commission (%)</Label>
                     <Input id="boltCommission" type="number" {...appSettingsForm.register('boltCommission')} />
                     {appSettingsForm.formState.errors.boltCommission && <p className="text-sm font-medium text-destructive">{appSettingsForm.formState.errors.boltCommission.message}</p>}
+                </div>
+                 <div className="space-y-2">
+                    <Label htmlFor="fuelCostPerKm">Fuel Cost per KM (AED)</Label>
+                    <Input id="fuelCostPerKm" type="number" step="0.01" {...appSettingsForm.register('fuelCostPerKm')} />
+                    {appSettingsForm.formState.errors.fuelCostPerKm && <p className="text-sm font-medium text-destructive">{appSettingsForm.formState.errors.fuelCostPerKm.message}</p>}
                 </div>
             </CardContent>
              <CardFooter>
