@@ -49,7 +49,7 @@ const incomeSchema = z.object({
 
 type IncomeFormValues = z.infer<typeof incomeSchema>;
 
-const defaultPlatforms: RidePlatform[] = ['uber', 'careem', 'bolt'];
+const defaultPlatforms: RidePlatform[] = ['uber', 'careem', 'bolt', 'dtc_mobility'];
 const defaultPickupLocations: PickupLocation[] = ["airport_t1", "airport_t2", "airport_t3", "dubai_mall", "atlantis_the_palm", "global_village", "other"];
 const paymentMethods: PaymentMethod[] = ["cash", "credit_card", "online_paid"];
 
@@ -149,7 +149,7 @@ export default function AddIncomeDialog() {
                         <SelectValue placeholder="Select a platform" />
                       </SelectTrigger>
                       <SelectContent>
-                        {defaultPlatforms.map(p => <SelectItem key={p} value={p} className="capitalize">{p}</SelectItem>)}
+                        {allPlatforms.map(p => <SelectItem key={p} value={p} className="capitalize">{p.replace(/_/g, ' ')}</SelectItem>)}
                         {settings.customPlatforms.length > 0 && <Separator />}
                         {settings.customPlatforms.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
                       </SelectContent>

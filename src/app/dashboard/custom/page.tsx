@@ -21,7 +21,7 @@ const calculateNet = (amount: number, { salikFee = 0, airportFee = 0, commission
     return amount - salikFee - airportFee - commission - bookingFee - fuelCost;
 }
 
-const defaultPlatforms: RidePlatform[] = ['uber', 'careem', 'bolt'];
+const defaultPlatforms: RidePlatform[] = ['uber', 'careem', 'bolt', 'dtc_mobility'];
 
 export default function CustomReportPage() {
     const { incomes, loading, settings } = useAppContext();
@@ -61,7 +61,7 @@ export default function CustomReportPage() {
         }
 
         const dataToExport = filteredIncomes.map(income => ({
-            'Platform': income.platform,
+            'Platform': income.platform.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
             'Date': format(new Date(income.date), 'PPP'),
             'Payment Method': income.paymentMethod?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'N/A',
             'Gross Amount': income.amount.toFixed(2),
@@ -134,7 +134,7 @@ export default function CustomReportPage() {
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">All Platforms</SelectItem>
-                            {defaultPlatforms.map(p => <SelectItem key={p} value={p} className="capitalize">{p}</SelectItem>)}
+                            {defaultPlatforms.map(p => <SelectItem key={p} value={p} className="capitalize">{p.replace(/_/g, ' ')}</SelectItem>)}
                             {settings.customPlatforms.length > 0 && <Separator />}
                             {settings.customPlatforms.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
                         </SelectContent>
@@ -150,7 +150,7 @@ export default function CustomReportPage() {
                     <CardDescription>
                         Summary for {dateRange?.from ? format(dateRange.from, "PPP") : ''}
                         {dateRange?.to ? ` to ${format(dateRange.to, "PPP")}` : ''}
-                        {platform !== 'all' && ` on ${platform.charAt(0).toUpperCase() + platform.slice(1)}`}
+                        {platform !== 'all' && ` on ${platform.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}`}
                     </CardDescription>
                 </CardHeader>
                 <CardContent>

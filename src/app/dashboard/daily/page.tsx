@@ -14,7 +14,7 @@ const calculateNet = (amount: number, { salikFee = 0, airportFee = 0, commission
     return amount - salikFee - airportFee - commission - bookingFee - fuelCost;
 }
 
-const defaultPlatforms: RidePlatform[] = ['uber', 'careem', 'bolt'];
+const defaultPlatforms: RidePlatform[] = ['uber', 'careem', 'bolt', 'dtc_mobility'];
 
 export default function DailyReportPage() {
     const { incomes, loading, settings } = useAppContext();
@@ -47,7 +47,7 @@ export default function DailyReportPage() {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all">All Platforms</SelectItem>
-                                {defaultPlatforms.map(p => <SelectItem key={p} value={p} className="capitalize">{p}</SelectItem>)}
+                                {defaultPlatforms.map(p => <SelectItem key={p} value={p} className="capitalize">{p.replace(/_/g, ' ')}</SelectItem>)}
                                 {settings.customPlatforms.length > 0 && <Separator />}
                                 {settings.customPlatforms.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
                             </SelectContent>
@@ -73,7 +73,7 @@ export default function DailyReportPage() {
                             {filteredIncomes.length > 0 ? filteredIncomes.map(income => (
                                 <TableRow key={income.id}>
                                     <TableCell className="font-medium whitespace-nowrap">{format(new Date(income.date), 'PPP')}</TableCell>
-                                    <TableCell className="capitalize">{income.platform}</TableCell>
+                                    <TableCell className="capitalize">{income.platform.replace(/_/g, ' ')}</TableCell>
                                     <TableCell className="capitalize">{income.paymentMethod?.replace(/_/g, ' ') || 'N/A'}</TableCell>
                                     <TableCell className="text-right text-green-600">AED {income.amount.toFixed(2)}</TableCell>
                                     <TableCell className="text-right font-bold">AED {calculateNet(income.amount, income).toFixed(2)}</TableCell>
