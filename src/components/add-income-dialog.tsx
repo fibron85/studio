@@ -49,7 +49,7 @@ const incomeSchema = z.object({
 
 type IncomeFormValues = z.infer<typeof incomeSchema>;
 
-const defaultPlatforms: RidePlatform[] = ['uber', 'careem', 'bolt', 'dtc_mobility'];
+const defaultPlatforms: RidePlatform[] = ['bolt', 'uber', 'careem', 'dtc_mobility'];
 const defaultPickupLocations: PickupLocation[] = ["airport_t1", "airport_t2", "airport_t3", "dubai_mall", "atlantis_the_palm", "global_village", "other"];
 const paymentMethods: PaymentMethod[] = ["cash", "credit_card", "online_paid"];
 

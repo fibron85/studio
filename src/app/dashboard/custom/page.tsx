@@ -21,7 +21,7 @@ const calculateNet = (amount: number, { salikFee = 0, airportFee = 0, commission
     return amount - salikFee - airportFee - commission - bookingFee - fuelCost;
 }
 
-const defaultPlatforms: RidePlatform[] = ['uber', 'careem', 'bolt', 'dtc_mobility'];
+const defaultPlatforms: RidePlatform[] = ['bolt', 'uber', 'careem', 'dtc_mobility'];
 
 export default function CustomReportPage() {
     const { incomes, loading, settings } = useAppContext();
