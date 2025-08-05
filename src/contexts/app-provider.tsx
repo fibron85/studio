@@ -23,7 +23,7 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 const defaultSettings: AppSettings = {
-    monthlyGoal: 2000,
+    monthlyGoal: 13000,
     boltCommission: 20,
     fullName: '',
     customPlatforms: [],
@@ -90,7 +90,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const addIncome = async (income: Omit<Income, 'id'>) => {
     if (!user) return;
     const newId = new Date().toISOString() + Math.random();
-    const newIncome: Income = { ...income, id: newId };
+    const newIncome: Income = { 
+        ...income, 
+        id: newId,
+        pickupLocation: income.pickupLocation || null,
+        paymentMethod: income.paymentMethod || null,
+    };
     
     try {
         const incomeRef = doc(db, 'users', user.uid, 'incomes', newId);
