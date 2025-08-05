@@ -136,13 +136,14 @@ export default function AddIncomeDialog() {
           <PlusCircle className="mr-2 h-4 w-4" /> Add Income
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] grid-rows-[auto_minmax(0,1fr)_auto] max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>Add New Income</DialogTitle>
           <DialogDescription>
             Record a new ride-sharing income entry.
           </DialogDescription>
         </DialogHeader>
+        <div className="overflow-y-auto pr-6 -mr-6">
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-2">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -250,7 +251,7 @@ export default function AddIncomeDialog() {
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4">
              <div className="space-y-2">
                 <Label htmlFor="date">Date</Label>
                 <Controller
@@ -290,13 +291,14 @@ export default function AddIncomeDialog() {
             <Input value={`AED ${netIncome.toFixed(2)}`} readOnly className="font-bold text-lg h-12 bg-muted" />
           </div>
           
-          <DialogFooter>
+          <DialogFooter className="pt-4">
             <DialogClose asChild>
                 <Button type="button" variant="ghost">Cancel</Button>
             </DialogClose>
             <Button type="submit">Add Income</Button>
           </DialogFooter>
         </form>
+        </div>
       </DialogContent>
     </Dialog>
   );
