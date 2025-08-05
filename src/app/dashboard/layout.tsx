@@ -45,9 +45,12 @@ export default function DashboardLayout({
                 <div className="flex-1"></div>
                 <UserProfile />
             </header>
-            <main>
+            <main className="flex-1">
               {children}
             </main>
+            <footer className="py-4 px-6 text-center text-sm text-muted-foreground">
+              Apps Developed By Md Fakhrul Islam DTC ID 2221508
+            </footer>
         </SidebarInset>
       </SidebarProvider>
       <Toaster />
