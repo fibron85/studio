@@ -23,6 +23,8 @@ export interface Income {
   fuelCost?: number;
 }
 
-export interface Goal {
-  monthly: number;
+export interface AppSettings {
+  monthlyGoal: number;
+  boltCommission: number;
+  fullName: string;
 }

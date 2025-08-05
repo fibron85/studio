@@ -49,7 +49,7 @@ type IncomeFormValues = z.infer<typeof incomeSchema>;
 
 export default function AddIncomeDialog() {
   const [open, setOpen] = useState(false);
-  const { addIncome } = useAppContext();
+  const { addIncome, settings } = useAppContext();
   const form = useForm<IncomeFormValues>({
     resolver: zodResolver(incomeSchema),
     defaultValues: {
@@ -84,14 +84,14 @@ export default function AddIncomeDialog() {
   }, [pickupLocation, form]);
 
   useEffect(() => {
-    if (platform === 'bolt') {
-      const commission = amount * 0.20;
+    if (platform === 'bolt' && settings.boltCommission > 0) {
+      const commission = amount * (settings.boltCommission / 100);
       form.setValue('commission', parseFloat(commission.toFixed(2)));
     } else {
       form.setValue('commission', 0);
       form.setValue('bookingFee', 0);
     }
-  }, [platform, amount, form]);
+  }, [platform, amount, settings.boltCommission, form]);
 
 
   useEffect(() => {

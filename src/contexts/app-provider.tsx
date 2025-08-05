@@ -1,26 +1,32 @@
 'use client'
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import type { Income, Goal } from '@/lib/types';
+import type { Income, AppSettings } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from './auth-provider';
 import { db } from '@/lib/firebase';
-import { collection, doc, getDoc, getDocs, setDoc, query, orderBy } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, setDoc, query, orderBy, updateDoc } from 'firebase/firestore';
 
 interface AppContextType {
   incomes: Income[];
-  goal: Goal;
+  settings: AppSettings;
   addIncome: (income: Omit<Income, 'id'>) => void;
-  setGoal: (goal: Goal) => void;
+  updateSettings: (settings: Partial<AppSettings>) => void;
   loading: boolean;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
+const defaultSettings: AppSettings = {
+    monthlyGoal: 2000,
+    boltCommission: 20,
+    fullName: '',
+};
+
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const { user, loading: authLoading } = useAuth();
   const [incomes, setIncomes] = useState<Income[]>([]);
-  const [goal, setGoal] = useState<Goal>({ monthly: 2000 });
+  const [settings, setSettings] = useState<AppSettings>(defaultSettings);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -28,17 +34,25 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (authLoading) return;
     if (!user) {
       setIncomes([]);
-      setGoal({ monthly: 2000 });
+      setSettings(defaultSettings);
       setLoading(false);
       return;
     }
 
     const fetchData = async () => {
+      setLoading(true);
       try {
-        const goalRef = doc(db, 'users', user.uid, 'settings', 'goal');
-        const goalSnap = await getDoc(goalRef);
-        if (goalSnap.exists()) {
-          setGoal(goalSnap.data() as Goal);
+        const settingsRef = doc(db, 'users', user.uid);
+        const settingsSnap = await getDoc(settingsRef);
+        if (settingsSnap.exists()) {
+          const data = settingsSnap.data();
+          setSettings({
+            monthlyGoal: data.monthlyGoal || defaultSettings.monthlyGoal,
+            boltCommission: data.boltCommission || defaultSettings.boltCommission,
+            fullName: data.fullName || user.displayName || defaultSettings.fullName,
+          });
+        } else {
+             setSettings(prev => ({ ...prev, fullName: user.displayName || '' }));
         }
 
         const incomesRef = collection(db, 'users', user.uid, 'incomes');
@@ -83,24 +97,23 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             variant: "destructive"
         });
     }
-
   };
 
-  const updateGoal = async (newGoal: Goal) => {
+  const updateSettings = async (newSettings: Partial<AppSettings>) => {
     if (!user) return;
     try {
-      const goalRef = doc(db, 'users', user.uid, 'settings', 'goal');
-      await setDoc(goalRef, newGoal, { merge: true });
-      setGoal(newGoal);
+      const settingsRef = doc(db, 'users', user.uid);
+      await updateDoc(settingsRef, newSettings);
+      setSettings(prev => ({...prev, ...newSettings}));
       toast({
           title: "Success",
-          description: "Income goal updated.",
+          description: "Your settings have been updated.",
       });
     } catch(error) {
-       console.error("Error updating goal: ", error);
+       console.error("Error updating settings: ", error);
        toast({
             title: "Error",
-            description: "Could not update goal.",
+            description: "Could not update your settings.",
             variant: "destructive"
        });
     }
@@ -108,9 +121,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const appContextValue = {
     incomes,
-    goal,
+    settings,
     addIncome,
-    setGoal: updateGoal,
+    updateSettings,
     loading: loading || authLoading
   }
 

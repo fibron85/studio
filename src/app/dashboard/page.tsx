@@ -14,7 +14,7 @@ const calculateNet = (amount: number, { salikFee = 0, airportFee = 0, commission
 }
 
 export default function DashboardPage() {
-    const { incomes, goal, loading } = useAppContext();
+    const { incomes, settings, loading } = useAppContext();
 
     if (loading) {
         return <DashboardSkeleton />;
@@ -36,7 +36,7 @@ export default function DashboardPage() {
     const uniqueDays = new Set(incomes.map(i => new Date(i.date).toDateString())).size;
     const avgDailyIncome = uniqueDays > 0 ? totalIncome / uniqueDays : 0;
 
-    const goalProgress = goal.monthly > 0 ? (monthlyIncome / goal.monthly) * 100 : 0;
+    const goalProgress = settings.monthlyGoal > 0 ? (monthlyIncome / settings.monthlyGoal) * 100 : 0;
     
     const recentIncomes = [...incomes].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 5);
 
