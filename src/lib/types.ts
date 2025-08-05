@@ -1,4 +1,4 @@
-export type RidePlatform = "uber" | "careem" | "bolt" | string;
+export type RidePlatform = "uber" | "careem" | "bolt" | "dtc" | string;
 
 export type PaymentMethod = "cash" | "credit_card" | "online_paid";
 
