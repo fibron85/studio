@@ -16,6 +16,7 @@ interface AppContextType {
   removeCustomPlatform: (platform: string) => void;
   addCustomPickupLocation: (location: string) => void;
   removeCustomPickupLocation: (location: string) => void;
+  markAsPaidToCashier: (incomeId: string) => void;
   loading: boolean;
 }
 
@@ -181,6 +182,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const markAsPaidToCashier = async (incomeId: string) => {
+    if (!user) return;
+    try {
+      const incomeRef = doc(db, 'users', user.uid, 'incomes', incomeId);
+      await updateDoc(incomeRef, { paidToCashier: true });
+      setIncomes(prev => prev.map(inc => 
+        inc.id === incomeId ? { ...inc, paidToCashier: true } : inc
+      ));
+      toast({ title: "Success", description: "Ride marked as paid." });
+    } catch (error) {
+      console.error("Error marking as paid: ", error);
+      toast({ title: "Error", description: "Could not update ride status.", variant: "destructive" });
+    }
+  };
+
 
   const appContextValue = {
     incomes,
@@ -191,6 +207,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     removeCustomPlatform,
     addCustomPickupLocation,
     removeCustomPickupLocation,
+    markAsPaidToCashier,
     loading: loading || authLoading
   }
 

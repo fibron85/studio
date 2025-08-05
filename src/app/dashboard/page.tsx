@@ -8,13 +8,14 @@ import SetGoalDialog from '@/components/set-goal-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { format, isWithinInterval, setDate, subMonths } from 'date-fns';
+import { Button } from '@/components/ui/button';
 
 const calculateNet = (amount: number, { salikFee = 0, airportFee = 0, commission = 0, bookingFee = 0, fuelCost = 0 }: { salikFee?: number, airportFee?: number, commission?: number, bookingFee?: number, fuelCost?: number }) => {
     return amount - salikFee - airportFee - commission - bookingFee - fuelCost;
 }
 
 export default function DashboardPage() {
-    const { incomes, settings, loading } = useAppContext();
+    const { incomes, settings, loading, markAsPaidToCashier } = useAppContext();
 
     if (loading) {
         return <DashboardSkeleton />;
@@ -105,35 +106,50 @@ export default function DashboardPage() {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Platform</TableHead>
+                                <TableHead>Payment</TableHead>
                                 <TableHead className="text-right">Gross</TableHead>
                                 <TableHead className="text-right">Net</TableHead>
                                 <TableHead className="text-right">Distance</TableHead>
                                 <TableHead className="text-right">Date</TableHead>
+                                <TableHead className="text-right">Action</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {recentIncomes.length > 0 ? recentIncomes.map(income => (
                                 <TableRow key={income.id}>
                                     <TableCell className="font-medium capitalize">{income.platform}</TableCell>
+                                    <TableCell className="capitalize">{income.paymentMethod?.replace(/_/g, ' ') || 'N/A'}</TableCell>
                                     <TableCell className="text-right">AED {income.amount.toFixed(2)}</TableCell>
                                     <TableCell className="text-right">AED {calculateNet(income.amount, income).toFixed(2)}</TableCell>
                                     <TableCell className="text-right">{income.distance ? `${income.distance.toFixed(1)} km` : '-'}</TableCell>
                                     <TableCell className="text-right">{format(new Date(income.date), 'PPP')}</TableCell>
+                                    <TableCell className="text-right">
+                                        {(income.paymentMethod === 'cash' || income.paymentMethod === 'credit_card') && (
+                                            <Button
+                                                size="sm"
+                                                variant={income.paidToCashier ? 'secondary' : 'default'}
+                                                onClick={() => !income.paidToCashier && markAsPaidToCashier(income.id)}
+                                                disabled={income.paidToCashier}
+                                            >
+                                                {income.paidToCashier ? 'Paid' : 'Pay to Cashier'}
+                                            </Button>
+                                        )}
+                                    </TableCell>
                                 </TableRow>
                             )) : (
                                 <TableRow>
-                                    <TableCell colSpan={5} className="text-center h-24">No recent income recorded.</TableCell>
+                                    <TableCell colSpan={7} className="text-center h-24">No recent income recorded.</TableCell>
                                 </TableRow>
                             )}
                         </TableBody>
                         {recentIncomes.length > 0 && (
                             <TableFooter>
                                 <TableRow className="font-bold bg-muted hover:bg-muted">
-                                    <TableCell>Total</TableCell>
+                                    <TableCell colSpan={2}>Total</TableCell>
                                     <TableCell className="text-right">AED {recentIncomesSummary.gross.toFixed(2)}</TableCell>
                                     <TableCell className="text-right">AED {recentIncomesSummary.net.toFixed(2)}</TableCell>
                                     <TableCell className="text-right">{recentIncomesSummary.distance.toFixed(1)} km</TableCell>
-                                    <TableCell></TableCell>
+                                    <TableCell colSpan={2}></TableCell>
                                 </TableRow>
                             </TableFooter>
                         )}

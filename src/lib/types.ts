@@ -25,6 +25,7 @@ export interface Income {
   commission?: number;
   distance?: number;
   fuelCost?: number;
+  paidToCashier?: boolean;
 }
 
 export interface AppSettings {

@@ -25,7 +25,7 @@ const defaultPlatforms: RidePlatform[] = ['bolt', 'uber', 'careem', 'dtc'];
 const timeZone = 'Asia/Dubai';
 
 export default function DailyReportPage() {
-    const { incomes, loading, settings } = useAppContext();
+    const { incomes, loading, settings, markAsPaidToCashier } = useAppContext();
     const [platform, setPlatform] = useState<RidePlatform | 'all'>('all');
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(startOfToday());
 
@@ -148,6 +148,7 @@ export default function DailyReportPage() {
                                 <TableHead className="text-right">Booking</TableHead>
                                 <TableHead className="text-right">Commission</TableHead>
                                 <TableHead className="text-right">Fuel</TableHead>
+                                <TableHead className="text-right">Action</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -164,10 +165,22 @@ export default function DailyReportPage() {
                                     <TableCell className="text-right text-red-600">-AED {(income.bookingFee || 0).toFixed(2)}</TableCell>
                                     <TableCell className="text-right text-red-600">-AED {(income.commission || 0).toFixed(2)}</TableCell>
                                     <TableCell className="text-right text-red-600">-AED {(income.fuelCost || 0).toFixed(2)}</TableCell>
+                                    <TableCell className="text-right">
+                                        {(income.paymentMethod === 'cash' || income.paymentMethod === 'credit_card') && (
+                                            <Button
+                                                size="sm"
+                                                variant={income.paidToCashier ? 'secondary' : 'default'}
+                                                onClick={() => !income.paidToCashier && markAsPaidToCashier(income.id)}
+                                                disabled={income.paidToCashier}
+                                            >
+                                                {income.paidToCashier ? 'Paid' : 'Pay to Cashier'}
+                                            </Button>
+                                        )}
+                                    </TableCell>
                                 </TableRow>
                             )) : (
                                 <TableRow>
-                                    <TableCell colSpan={11} className="text-center h-24">No income data available for this day.</TableCell>
+                                    <TableCell colSpan={12} className="text-center h-24">No income data available for this day.</TableCell>
                                 </TableRow>
                             )}
                         </TableBody>
@@ -182,6 +195,7 @@ export default function DailyReportPage() {
                                 <TableCell className="text-right text-red-600">-AED {summary.bookingFee.toFixed(2)}</TableCell>
                                 <TableCell className="text-right text-red-600">-AED {summary.commission.toFixed(2)}</TableCell>
                                 <TableCell className="text-right text-red-600">-AED {summary.fuelCost.toFixed(2)}</TableCell>
+                                <TableCell></TableCell>
                             </TableRow>
                         </TableFooter>
                     </Table>
