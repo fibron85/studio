@@ -6,7 +6,7 @@ import { useAppContext } from '@/contexts/app-provider';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format, startOfToday, startOfYesterday, isEqual } from 'date-fns';
-import { utcToZonedTime } from 'date-fns-tz';
+import { toZonedTime } from 'date-fns-tz';
 import type { RidePlatform } from '@/lib/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
@@ -35,7 +35,7 @@ export default function DailyReportPage() {
     }
 
     const getDayStart = (date: Date) => {
-        return utcToZonedTime(date, timeZone);
+        return toZonedTime(date, timeZone);
     };
 
     const filteredIncomes = incomes
