@@ -1,5 +1,7 @@
 export type RidePlatform = "uber" | "careem" | "bolt" | string;
 
+export type PaymentMethod = "cash" | "credit_card" | "online_paid";
+
 export type PickupLocation = 
   | "airport_t1"
   | "airport_t2"
@@ -15,6 +17,7 @@ export interface Income {
   platform: RidePlatform;
   amount: number;
   date: string; // ISO string
+  paymentMethod?: PaymentMethod;
   pickupLocation?: PickupLocation;
   salikFee?: number;
   airportFee?: number;

@@ -54,7 +54,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           const data = settingsSnap.data();
           setSettings({
             monthlyGoal: data.monthlyGoal || defaultSettings.monthlyGoal,
-            boltCommission: data.boltCommission || defaultSettings.boltCommission,
+            boltCommission: data.boltCommission ?? defaultSettings.boltCommission, // Allow 0
             fullName: data.fullName || user.displayName || defaultSettings.fullName,
             customPlatforms: data.customPlatforms || [],
             customPickupLocations: data.customPickupLocations || [],

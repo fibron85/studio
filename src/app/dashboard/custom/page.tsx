@@ -63,6 +63,7 @@ export default function CustomReportPage() {
         const dataToExport = filteredIncomes.map(income => ({
             'Platform': income.platform,
             'Date': format(new Date(income.date), 'PPP'),
+            'Payment Method': income.paymentMethod?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'N/A',
             'Gross Amount': income.amount.toFixed(2),
             'Distance (km)': income.distance?.toFixed(2) || 'N/A',
             'Pickup Location': income.pickupLocation?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'N/A',

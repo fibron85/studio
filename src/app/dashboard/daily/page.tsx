@@ -58,6 +58,7 @@ export default function DailyReportPage() {
                             <TableRow>
                                 <TableHead>Date</TableHead>
                                 <TableHead>Platform</TableHead>
+                                <TableHead>Payment</TableHead>
                                 <TableHead className="text-right">Gross</TableHead>
                                 <TableHead className="text-right">Net</TableHead>
                                 <TableHead className="text-right">Distance</TableHead>
@@ -73,6 +74,7 @@ export default function DailyReportPage() {
                                 <TableRow key={income.id}>
                                     <TableCell className="font-medium whitespace-nowrap">{format(new Date(income.date), 'PPP')}</TableCell>
                                     <TableCell className="capitalize">{income.platform}</TableCell>
+                                    <TableCell className="capitalize">{income.paymentMethod?.replace(/_/g, ' ') || 'N/A'}</TableCell>
                                     <TableCell className="text-right text-green-600">AED {income.amount.toFixed(2)}</TableCell>
                                     <TableCell className="text-right font-bold">AED {calculateNet(income.amount, income).toFixed(2)}</TableCell>
                                     <TableCell className="text-right">{income.distance ? `${income.distance.toFixed(1)} km` : '-'}</TableCell>
@@ -84,7 +86,7 @@ export default function DailyReportPage() {
                                 </TableRow>
                             )) : (
                                 <TableRow>
-                                    <TableCell colSpan={10} className="text-center h-24">No income data available.</TableCell>
+                                    <TableCell colSpan={11} className="text-center h-24">No income data available.</TableCell>
                                 </TableRow>
                             )}
                         </TableBody>

@@ -30,7 +30,7 @@ import { Popover, PopoverTrigger, PopoverContent } from './ui/popover';
 import { Calendar } from './ui/calendar';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import type { PickupLocation, RidePlatform } from '@/lib/types';
+import type { PickupLocation, RidePlatform, PaymentMethod } from '@/lib/types';
 import { Separator } from './ui/separator';
 
 const incomeSchema = z.object({
@@ -39,6 +39,7 @@ const incomeSchema = z.object({
   distance: z.coerce.number().optional(),
   date: z.date(),
   pickupLocation: z.string().optional(),
+  paymentMethod: z.string().optional(),
   salikFee: z.coerce.number().optional(),
   airportFee: z.coerce.number().optional(),
   bookingFee: z.coerce.number().optional(),
@@ -50,6 +51,7 @@ type IncomeFormValues = z.infer<typeof incomeSchema>;
 
 const defaultPlatforms: RidePlatform[] = ['uber', 'careem', 'bolt'];
 const defaultPickupLocations: PickupLocation[] = ["airport_t1", "airport_t2", "airport_t3", "dubai_mall", "atlantis_the_palm", "global_village", "other"];
+const paymentMethods: PaymentMethod[] = ["cash", "credit_card", "online_paid"];
 
 export default function AddIncomeDialog() {
   const [open, setOpen] = useState(false);
@@ -113,8 +115,8 @@ export default function AddIncomeDialog() {
 
 
   const onSubmit = (data: IncomeFormValues) => {
-    addIncome({ ...data, date: data.date.toISOString(), pickupLocation: data.pickupLocation as PickupLocation });
-    form.reset({ date: new Date(), amount: 0, distance: 0, platform: undefined, salikFee: 0, airportFee: 0, bookingFee: 0, commission: 0, fuelCost: 0, pickupLocation: undefined });
+    addIncome({ ...data, date: data.date.toISOString(), pickupLocation: data.pickupLocation as PickupLocation, paymentMethod: data.paymentMethod as PaymentMethod });
+    form.reset({ date: new Date(), amount: 0, distance: 0, platform: undefined, salikFee: 0, airportFee: 0, bookingFee: 0, commission: 0, fuelCost: 0, pickupLocation: undefined, paymentMethod: undefined });
     setOpen(false);
   };
 
@@ -135,25 +137,45 @@ export default function AddIncomeDialog() {
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-2">
-            <div className="space-y-2">
-              <Label htmlFor="platform">Platform</Label>
-              <Controller
-                control={form.control}
-                name="platform"
-                render={({ field }) => (
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a platform" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {defaultPlatforms.map(p => <SelectItem key={p} value={p} className="capitalize">{p}</SelectItem>)}
-                      {settings.customPlatforms.length > 0 && <Separator />}
-                      {settings.customPlatforms.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-              {form.formState.errors.platform && <p className="text-sm font-medium text-destructive">{form.formState.errors.platform.message}</p>}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="platform">Platform</Label>
+                <Controller
+                  control={form.control}
+                  name="platform"
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a platform" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {defaultPlatforms.map(p => <SelectItem key={p} value={p} className="capitalize">{p}</SelectItem>)}
+                        {settings.customPlatforms.length > 0 && <Separator />}
+                        {settings.customPlatforms.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                {form.formState.errors.platform && <p className="text-sm font-medium text-destructive">{form.formState.errors.platform.message}</p>}
+              </div>
+
+               <div className="space-y-2">
+                <Label htmlFor="paymentMethod">Payment Method</Label>
+                <Controller
+                  control={form.control}
+                  name="paymentMethod"
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select method" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {paymentMethods.map(p => <SelectItem key={p} value={p} className="capitalize">{p.replace(/_/g, ' ')}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </div>
             </div>
           
             {platform === 'bolt' && (
