@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useAppContext } from '@/contexts/app-provider';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { format } from 'date-fns';
 import type { RidePlatform } from '@/lib/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -30,6 +30,18 @@ export default function AllRidesPage() {
     const filteredIncomes = incomes
         .filter(income => platform === 'all' || income.platform === platform)
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    
+    const summary = filteredIncomes.reduce((acc, income) => {
+        acc.gross += income.amount;
+        acc.salikFee += income.salikFee || 0;
+        acc.airportFee += income.airportFee || 0;
+        acc.bookingFee += income.bookingFee || 0;
+        acc.commission += income.commission || 0;
+        acc.fuelCost += income.fuelCost || 0;
+        acc.net += calculateNet(income.amount, income);
+        acc.distance += income.distance || 0;
+        return acc;
+    }, { gross: 0, net: 0, salikFee: 0, airportFee: 0, bookingFee: 0, commission: 0, fuelCost: 0, distance: 0 });
 
     const totalPages = Math.ceil(filteredIncomes.length / RIDES_PER_PAGE);
     const paginatedIncomes = filteredIncomes.slice((currentPage - 1) * RIDES_PER_PAGE, currentPage * RIDES_PER_PAGE);
@@ -103,6 +115,19 @@ export default function AllRidesPage() {
                                     </TableRow>
                                 )}
                             </TableBody>
+                             <TableFooter>
+                                <TableRow className="font-bold bg-muted hover:bg-muted">
+                                    <TableCell colSpan={3}>Total ({filteredIncomes.length} rides)</TableCell>
+                                    <TableCell className="text-right text-green-600">AED {summary.gross.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right">AED {summary.net.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right">{summary.distance.toFixed(1)} km</TableCell>
+                                    <TableCell className="text-right text-red-600">-AED {summary.salikFee.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right text-red-600">-AED {summary.airportFee.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right text-red-600">-AED {summary.bookingFee.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right text-red-600">-AED {summary.commission.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right text-red-600">-AED {summary.fuelCost.toFixed(2)}</TableCell>
+                                </TableRow>
+                            </TableFooter>
                         </Table>
                     </div>
                      {totalPages > 1 && (

@@ -9,7 +9,7 @@ import { format, endOfWeek, eachWeekOfInterval, subWeeks } from 'date-fns';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { RidePlatform } from '@/lib/types';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
 
 const calculateNet = (amount: number, { salikFee = 0, airportFee = 0, commission = 0, bookingFee = 0, fuelCost = 0 }: { salikFee?: number, airportFee?: number, commission?: number, bookingFee?: number, fuelCost?: number }) => {
@@ -25,8 +25,6 @@ export default function WeeklyReportPage() {
     if (loading) {
         return <ReportSkeleton />;
     }
-
-    const allPlatforms = [...defaultPlatforms, ...settings.customPlatforms];
 
     const filteredIncomes = incomes.filter(income => {
         return platform === 'all' || income.platform === platform;
@@ -148,11 +146,13 @@ export default function WeeklyReportPage() {
                                 <TableCell>Fuel Cost</TableCell>
                                 <TableCell className="text-right text-red-600">-AED {summary.fuelCost.toFixed(2)}</TableCell>
                             </TableRow>
-                             <TableRow className="font-bold bg-muted hover:bg-muted">
+                        </TableBody>
+                        <TableFooter>
+                            <TableRow className="font-bold bg-muted hover:bg-muted">
                                 <TableCell>Net Income</TableCell>
                                 <TableCell className="text-right">AED {summary.net.toFixed(2)}</TableCell>
                             </TableRow>
-                        </TableBody>
+                        </TableFooter>
                     </Table>
                 </CardContent>
             </Card>

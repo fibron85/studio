@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useAppContext } from '@/contexts/app-provider';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { format, startOfToday, startOfYesterday, isEqual } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 import type { RidePlatform } from '@/lib/types';
@@ -15,7 +15,6 @@ import { Button } from '@/components/ui/button';
 import { CalendarIcon } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
-import { DayPicker } from 'react-day-picker';
 
 const calculateNet = (amount: number, { salikFee = 0, airportFee = 0, commission = 0, bookingFee = 0, fuelCost = 0 }: { salikFee?: number, airportFee?: number, commission?: number, bookingFee?: number, fuelCost?: number }) => {
     return amount - salikFee - airportFee - commission - bookingFee - fuelCost;
@@ -52,6 +51,18 @@ export default function DailyReportPage() {
             return isSameDay && isPlatformMatch;
         })
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    const summary = filteredIncomes.reduce((acc, income) => {
+        acc.gross += income.amount;
+        acc.salikFee += income.salikFee || 0;
+        acc.airportFee += income.airportFee || 0;
+        acc.bookingFee += income.bookingFee || 0;
+        acc.commission += income.commission || 0;
+        acc.fuelCost += income.fuelCost || 0;
+        acc.net += calculateNet(income.amount, income);
+        acc.distance += income.distance || 0;
+        return acc;
+    }, { gross: 0, net: 0, salikFee: 0, airportFee: 0, bookingFee: 0, commission: 0, fuelCost: 0, distance: 0 });
 
     return (
         <div className="flex-1 space-y-4 p-4 md:p-8 pt-0 md:pt-6">
@@ -160,6 +171,19 @@ export default function DailyReportPage() {
                                 </TableRow>
                             )}
                         </TableBody>
+                        <TableFooter>
+                            <TableRow className="font-bold bg-muted hover:bg-muted">
+                                <TableCell colSpan={3}>Total ({filteredIncomes.length} rides)</TableCell>
+                                <TableCell className="text-right text-green-600">AED {summary.gross.toFixed(2)}</TableCell>
+                                <TableCell className="text-right">AED {summary.net.toFixed(2)}</TableCell>
+                                <TableCell className="text-right">{summary.distance.toFixed(1)} km</TableCell>
+                                <TableCell className="text-right text-red-600">-AED {summary.salikFee.toFixed(2)}</TableCell>
+                                <TableCell className="text-right text-red-600">-AED {summary.airportFee.toFixed(2)}</TableCell>
+                                <TableCell className="text-right text-red-600">-AED {summary.bookingFee.toFixed(2)}</TableCell>
+                                <TableCell className="text-right text-red-600">-AED {summary.commission.toFixed(2)}</TableCell>
+                                <TableCell className="text-right text-red-600">-AED {summary.fuelCost.toFixed(2)}</TableCell>
+                            </TableRow>
+                        </TableFooter>
                     </Table>
                 </CardContent>
             </Card>

@@ -6,7 +6,7 @@ import { useAppContext } from '@/contexts/app-provider';
 import AddIncomeDialog from '@/components/add-income-dialog';
 import SetGoalDialog from '@/components/set-goal-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { format, isWithinInterval, setDate, subMonths } from 'date-fns';
 
 const calculateNet = (amount: number, { salikFee = 0, airportFee = 0, commission = 0, bookingFee = 0, fuelCost = 0 }: { salikFee?: number, airportFee?: number, commission?: number, bookingFee?: number, fuelCost?: number }) => {
@@ -39,6 +39,13 @@ export default function DashboardPage() {
     const goalProgress = settings.monthlyGoal > 0 ? (monthlyIncome / settings.monthlyGoal) * 100 : 0;
     
     const recentIncomes = [...incomes].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 5);
+
+    const recentIncomesSummary = recentIncomes.reduce((acc, income) => {
+        acc.gross += income.amount;
+        acc.net += calculateNet(income.amount, income);
+        acc.distance += income.distance || 0;
+        return acc;
+    }, { gross: 0, net: 0, distance: 0 });
 
     return (
         <div className="flex flex-col flex-1 space-y-4 p-4 md:p-8 pt-0 md:pt-6">
@@ -119,6 +126,17 @@ export default function DashboardPage() {
                                 </TableRow>
                             )}
                         </TableBody>
+                        {recentIncomes.length > 0 && (
+                            <TableFooter>
+                                <TableRow className="font-bold bg-muted hover:bg-muted">
+                                    <TableCell>Total</TableCell>
+                                    <TableCell className="text-right">AED {recentIncomesSummary.gross.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right">AED {recentIncomesSummary.net.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right">{recentIncomesSummary.distance.toFixed(1)} km</TableCell>
+                                    <TableCell></TableCell>
+                                </TableRow>
+                            </TableFooter>
+                        )}
                     </Table>
                 </CardContent>
             </Card>

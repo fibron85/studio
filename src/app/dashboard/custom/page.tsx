@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useAppContext } from '@/contexts/app-provider';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { DateRange } from 'react-day-picker';
 import { addDays, format, startOfMonth } from 'date-fns';
 import { Button } from '@/components/ui/button';
@@ -34,8 +34,6 @@ export default function CustomReportPage() {
     if (loading) {
         return <ReportSkeleton />;
     }
-
-    const allPlatforms = [...defaultPlatforms, ...settings.customPlatforms];
 
     const filteredIncomes = incomes.filter(income => {
         const incomeDate = new Date(income.date);
@@ -190,11 +188,13 @@ export default function CustomReportPage() {
                                 <TableCell>Fuel Cost</TableCell>
                                 <TableCell className="text-right text-red-600">-AED {summary.fuelCost.toFixed(2)}</TableCell>
                             </TableRow>
+                        </TableBody>
+                        <TableFooter>
                              <TableRow className="font-bold bg-muted hover:bg-muted">
                                 <TableCell>Net Income</TableCell>
                                 <TableCell className="text-right">AED {summary.net.toFixed(2)}</TableCell>
                             </TableRow>
-                        </TableBody>
+                        </TableFooter>
                     </Table>
                 </CardContent>
             </Card>
