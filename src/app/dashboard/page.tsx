@@ -1,3 +1,4 @@
+
 'use client';
 import { Target, DollarSign } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -97,7 +98,7 @@ export default function DashboardPage() {
                     </CardContent>
                 </Card>
             </div>
-            <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-1">
+            <div className="grid gap-4 grid-cols-1">
                 <Card>
                     <CardHeader>
                         <CardTitle>Recent Rides</CardTitle>

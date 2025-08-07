@@ -1,3 +1,4 @@
+
 'use client'
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
@@ -5,12 +6,14 @@ import type { Income, AppSettings } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from './auth-provider';
 import { db } from '@/lib/firebase';
-import { collection, doc, getDoc, getDocs, setDoc, query, orderBy, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, setDoc, query, orderBy, updateDoc, arrayUnion, arrayRemove, deleteDoc } from 'firebase/firestore';
 
 interface AppContextType {
   incomes: Income[];
   settings: AppSettings;
   addIncome: (income: Omit<Income, 'id'>) => void;
+  updateIncome: (id: string, income: Partial<Income>) => void;
+  deleteIncome: (id: string) => void;
   updateSettings: (settings: Partial<Pick<AppSettings, 'monthlyGoal' | 'boltCommission' | 'fullName' | 'fuelCostPerKm'>>) => void;
   addCustomPlatform: (platform: string) => void;
   removeCustomPlatform: (platform: string) => void;
@@ -100,7 +103,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     try {
         const incomeRef = doc(db, 'users', user.uid, 'incomes', newId);
         await setDoc(incomeRef, newIncome);
-        setIncomes(prev => [newIncome, ...prev]);
+        setIncomes(prev => [newIncome, ...prev].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
         toast({
             title: "Success",
             description: "Income added successfully.",
@@ -114,6 +117,49 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         });
     }
   };
+
+  const updateIncome = async (id: string, updatedIncomeData: Partial<Income>) => {
+    if (!user) return;
+    try {
+        const incomeRef = doc(db, 'users', user.uid, 'incomes', id);
+        await updateDoc(incomeRef, updatedIncomeData);
+        setIncomes(prev => prev.map(inc => inc.id === id ? { ...inc, ...updatedIncomeData } : inc)
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        );
+        toast({
+            title: "Success",
+            description: "Ride updated successfully.",
+        });
+    } catch (error) {
+        console.error("Error updating income: ", error);
+        toast({
+            title: "Error",
+            description: "Could not update ride.",
+            variant: "destructive"
+        });
+    }
+  };
+
+  const deleteIncome = async (id: string) => {
+    if (!user) return;
+    try {
+        const incomeRef = doc(db, 'users', user.uid, 'incomes', id);
+        await deleteDoc(incomeRef);
+        setIncomes(prev => prev.filter(inc => inc.id !== id));
+        toast({
+            title: "Success",
+            description: "Ride deleted successfully.",
+        });
+    } catch (error) {
+        console.error("Error deleting income: ", error);
+        toast({
+            title: "Error",
+            description: "Could not delete ride.",
+            variant: "destructive"
+        });
+    }
+  };
+
 
   const updateSettings = async (newSettings: Partial<Pick<AppSettings, 'monthlyGoal' | 'boltCommission' | 'fullName' | 'fuelCostPerKm'>>) => {
     if (!user) return;
@@ -207,6 +253,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     incomes,
     settings,
     addIncome,
+    updateIncome,
+    deleteIncome,
     updateSettings,
     addCustomPlatform,
     removeCustomPlatform,

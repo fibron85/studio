@@ -18,7 +18,7 @@ import { Label } from '@/components/ui/label';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { PlusCircle, Calendar as CalendarIcon } from 'lucide-react';
+import { PlusCircle, Calendar as CalendarIcon, Pencil } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -31,7 +31,7 @@ import { Popover, PopoverTrigger, PopoverContent } from './ui/popover';
 import { Calendar } from './ui/calendar';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import type { PickupLocation, RidePlatform, PaymentMethod } from '@/lib/types';
+import type { Income, PickupLocation, RidePlatform, PaymentMethod } from '@/lib/types';
 import { Separator } from './ui/separator';
 
 const incomeSchema = z.object({
@@ -54,17 +54,22 @@ const defaultPlatforms: RidePlatform[] = ['bolt', 'uber', 'careem', 'dtc'];
 const defaultPickupLocations: PickupLocation[] = ["airport_t1", "airport_t2", "airport_t3", "dubai_mall", "atlantis_the_palm", "global_village", "other"];
 const paymentMethods: PaymentMethod[] = ["cash", "credit_card", "online_paid"];
 
-export default function AddIncomeDialog() {
+export default function AddIncomeDialog({ income }: { income?: Income }) {
   const [open, setOpen] = useState(false);
-  const { addIncome, settings } = useAppContext();
+  const { addIncome, updateIncome, settings } = useAppContext();
   const [isBookingFeeManual, setIsBookingFeeManual] = useState(true);
+
+  const isEditing = !!income;
   
   const allPlatforms = [ ...defaultPlatforms, ...settings.customPlatforms];
   const allPickupLocations = [...defaultPickupLocations, ...settings.customPickupLocations];
 
   const form = useForm<IncomeFormValues>({
     resolver: zodResolver(incomeSchema),
-    defaultValues: {
+    defaultValues: isEditing ? {
+        ...income,
+        date: new Date(income.date),
+    } : {
       date: new Date(),
       amount: 0,
       distance: 0,
@@ -101,7 +106,6 @@ export default function AddIncomeDialog() {
             }
             setIsBookingFeeManual(true);
         }
-        // Always set airportFee to 0 for Bolt, as per requirement to remove it.
         form.setValue('airportFee', 0);
 
     } else { // Logic for non-Bolt platforms
@@ -113,7 +117,6 @@ export default function AddIncomeDialog() {
                 form.setValue('airportFee', 0);
             }
         }
-        // For non-bolt, booking fee is always manual
         setIsBookingFeeManual(true);
     }
   }, [platform, pickupLocation, form]);
@@ -145,12 +148,20 @@ export default function AddIncomeDialog() {
   const onSubmit = (data: IncomeFormValues) => {
     const submissionData = {
         ...data,
+        id: income?.id || '',
         date: data.date.toISOString(),
         pickupLocation: data.pickupLocation || null,
         paymentMethod: data.paymentMethod || null,
     };
-    addIncome(submissionData);
-    form.reset({ date: new Date(), amount: 0, distance: 0, platform: undefined, salikFee: 0, airportFee: 0, bookingFee: 0, commission: 0, fuelCost: 0, pickupLocation: undefined, paymentMethod: undefined });
+    if (isEditing) {
+        updateIncome(submissionData.id, submissionData);
+    } else {
+        addIncome(submissionData);
+    }
+    
+    if (!isEditing) {
+        form.reset({ date: new Date(), amount: 0, distance: 0, platform: undefined, salikFee: 0, airportFee: 0, bookingFee: 0, commission: 0, fuelCost: 0, pickupLocation: undefined, paymentMethod: undefined });
+    }
     setOpen(false);
   };
 
@@ -159,15 +170,21 @@ export default function AddIncomeDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>
-          <PlusCircle className="mr-2 h-4 w-4" /> Add Income
-        </Button>
+        {isEditing ? (
+            <Button variant="ghost" size="icon">
+                <Pencil className="h-4 w-4" />
+            </Button>
+        ) : (
+            <Button>
+              <PlusCircle className="mr-2 h-4 w-4" /> Add Income
+            </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px] grid-rows-[auto_minmax(0,1fr)_auto] max-h-[90vh]">
         <DialogHeader>
-          <DialogTitle>Add New Income</DialogTitle>
+          <DialogTitle>{isEditing ? 'Edit Income' : 'Add New Income'}</DialogTitle>
           <DialogDescription>
-            Record a new ride-sharing income entry.
+            {isEditing ? 'Update the details of this ride.' : 'Record a new ride-sharing income entry.'}
           </DialogDescription>
         </DialogHeader>
         <div className="overflow-y-auto pr-6 -mr-6">
@@ -179,7 +196,7 @@ export default function AddIncomeDialog() {
                   control={form.control}
                   name="platform"
                   render={({ field }) => (
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a platform" />
                       </SelectTrigger>
@@ -200,7 +217,7 @@ export default function AddIncomeDialog() {
                   control={form.control}
                   name="paymentMethod"
                   render={({ field }) => (
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value || ""}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select method" />
                       </SelectTrigger>
@@ -220,7 +237,7 @@ export default function AddIncomeDialog() {
                       control={form.control}
                       name="pickupLocation"
                       render={({ field }) => (
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value || ""}>
                           <SelectTrigger>
                           <SelectValue placeholder="Select a location" />
                           </SelectTrigger>
@@ -323,7 +340,7 @@ export default function AddIncomeDialog() {
             <DialogClose asChild>
                 <Button type="button" variant="ghost">Cancel</Button>
             </DialogClose>
-            <Button type="submit">Add Income</Button>
+            <Button type="submit">{isEditing ? 'Save Changes' : 'Add Income'}</Button>
           </DialogFooter>
         </form>
         </div>

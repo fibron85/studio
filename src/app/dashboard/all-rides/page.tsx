@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -6,10 +7,14 @@ import { useAppContext } from '@/contexts/app-provider';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { format } from 'date-fns';
-import type { RidePlatform } from '@/lib/types';
+import type { Income, RidePlatform } from '@/lib/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
+import AddIncomeDialog from '@/components/add-income-dialog';
+import { Trash2 } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+
 
 const calculateNet = (amount: number, { salikFee = 0, airportFee = 0, commission = 0, bookingFee = 0, fuelCost = 0 }: { salikFee?: number, airportFee?: number, commission?: number, bookingFee?: number, fuelCost?: number }) => {
     return amount - salikFee - airportFee - commission - bookingFee - fuelCost;
@@ -19,7 +24,7 @@ const defaultPlatforms: RidePlatform[] = ['bolt', 'uber', 'careem', 'dtc'];
 const RIDES_PER_PAGE = 50;
 
 export default function AllRidesPage() {
-    const { incomes, loading, settings, markAsPaidToCashier } = useAppContext();
+    const { incomes, loading, settings, markAsPaidToCashier, deleteIncome } = useAppContext();
     const [platform, setPlatform] = useState<RidePlatform | 'all'>('all');
     const [currentPage, setCurrentPage] = useState(1);
 
@@ -57,7 +62,10 @@ export default function AllRidesPage() {
 
     return (
         <div className="flex-1 space-y-4 p-4 md:p-8 pt-0 md:pt-6">
-            <h2 className="text-3xl font-bold tracking-tight">All Rides Log</h2>
+            <div className="flex items-center justify-between">
+                <h2 className="text-3xl font-bold tracking-tight">All Rides Log</h2>
+                 <AddIncomeDialog />
+            </div>
             <Card>
                 <CardHeader>
                     <CardTitle>All Rides</CardTitle>
@@ -92,7 +100,8 @@ export default function AllRidesPage() {
                                     <TableHead className="text-right">Booking</TableHead>
                                     <TableHead className="text-right">Commission</TableHead>
                                     <TableHead className="text-right">Fuel</TableHead>
-                                    <TableHead className="text-right">Action</TableHead>
+                                    <TableHead className="text-right">Cashier</TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -117,14 +126,38 @@ export default function AllRidesPage() {
                                                     onClick={() => !income.paidToCashier && markAsPaidToCashier(income.id)}
                                                     disabled={income.paidToCashier}
                                                 >
-                                                    {income.paidToCashier ? 'Paid' : 'Pay to Cashier'}
+                                                    {income.paidToCashier ? 'Paid' : 'Pay'}
                                                 </Button>
                                             )}
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <div className="flex justify-end gap-2">
+                                                <AddIncomeDialog income={income} />
+                                                <AlertDialog>
+                                                    <AlertDialogTrigger asChild>
+                                                        <Button variant="destructive" size="icon">
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    </AlertDialogTrigger>
+                                                    <AlertDialogContent>
+                                                        <AlertDialogHeader>
+                                                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                            <AlertDialogDescription>
+                                                                This action cannot be undone. This will permanently delete this ride entry.
+                                                            </AlertDialogDescription>
+                                                        </AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                            <AlertDialogAction onClick={() => deleteIncome(income.id)}>Delete</AlertDialogAction>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
+                                            </div>
                                         </TableCell>
                                     </TableRow>
                                 )) : (
                                     <TableRow>
-                                        <TableCell colSpan={12} className="text-center h-24">No income data available.</TableCell>
+                                        <TableCell colSpan={13} className="text-center h-24">No income data available.</TableCell>
                                     </TableRow>
                                 )}
                             </TableBody>
@@ -139,7 +172,7 @@ export default function AllRidesPage() {
                                     <TableCell className="text-right text-red-600">-AED {summary.bookingFee.toFixed(2)}</TableCell>
                                     <TableCell className="text-right text-red-600">-AED {summary.commission.toFixed(2)}</TableCell>
                                     <TableCell className="text-right text-red-600">-AED {summary.fuelCost.toFixed(2)}</TableCell>
-                                    <TableCell></TableCell>
+                                    <TableCell colSpan={2}></TableCell>
                                 </TableRow>
                             </TableFooter>
                         </Table>
