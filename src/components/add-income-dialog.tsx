@@ -57,6 +57,7 @@ const paymentMethods: PaymentMethod[] = ["cash", "credit_card", "online_paid"];
 export default function AddIncomeDialog() {
   const [open, setOpen] = useState(false);
   const { addIncome, settings } = useAppContext();
+  const [isBookingFeeManual, setIsBookingFeeManual] = useState(true);
   
   const allPlatforms = [ ...defaultPlatforms, ...settings.customPlatforms];
   const allPickupLocations = [...defaultPickupLocations, ...settings.customPickupLocations];
@@ -84,15 +85,39 @@ export default function AddIncomeDialog() {
   const netIncome = (watchedValues.amount || 0) - (watchedValues.salikFee || 0) - (watchedValues.airportFee || 0) - (watchedValues.bookingFee || 0) - (watchedValues.commission || 0) - (watchedValues.fuelCost || 0);
 
   useEffect(() => {
-    const isAirport = pickupLocation === 'airport_t1' || pickupLocation === 'airport_t2' || pickupLocation === 'airport_t3';
-    if (isAirport) {
-        form.setValue('airportFee', 20);
-    } else {
-      if (pickupLocation) { 
+    if (platform === 'bolt') {
+        const isAirport = pickupLocation === 'airport_t1' || pickupLocation === 'airport_t2' || pickupLocation === 'airport_t3';
+        const isSpecialLocation = pickupLocation === 'dubai_mall' || pickupLocation === 'global_village' || pickupLocation === 'atlantis_the_palm';
+
+        if (isAirport) {
+            form.setValue('bookingFee', 25);
+            setIsBookingFeeManual(false);
+        } else if (isSpecialLocation) {
+            form.setValue('bookingFee', 16);
+            setIsBookingFeeManual(false);
+        } else {
+             if (pickupLocation) { // only reset if a location is selected
+                form.setValue('bookingFee', 0);
+            }
+            setIsBookingFeeManual(true);
+        }
+        // Always set airportFee to 0 for Bolt, as per requirement to remove it.
         form.setValue('airportFee', 0);
-      }
+
+    } else { // Logic for non-Bolt platforms
+        const isAirport = pickupLocation === 'airport_t1' || pickupLocation === 'airport_t2' || pickupLocation === 'airport_t3';
+        if (isAirport) {
+            form.setValue('airportFee', 20);
+        } else {
+            if (pickupLocation) {
+                form.setValue('airportFee', 0);
+            }
+        }
+        // For non-bolt, booking fee is always manual
+        setIsBookingFeeManual(true);
     }
-  }, [pickupLocation, form]);
+  }, [platform, pickupLocation, form]);
+
 
   useEffect(() => {
     if (platform === 'bolt' && settings.boltCommission > 0) {
@@ -100,7 +125,9 @@ export default function AddIncomeDialog() {
       form.setValue('commission', parseFloat(commission.toFixed(2)));
     } else {
       form.setValue('commission', 0);
-      form.setValue('bookingFee', 0);
+      if (platform !== 'bolt') {
+        form.setValue('bookingFee', 0);
+      }
     }
   }, [platform, amount, settings.boltCommission, form]);
 
@@ -119,8 +146,8 @@ export default function AddIncomeDialog() {
     const submissionData = {
         ...data,
         date: data.date.toISOString(),
-        pickupLocation: (data.pickupLocation || null) as PickupLocation | null,
-        paymentMethod: (data.paymentMethod || null) as PaymentMethod | null,
+        pickupLocation: data.pickupLocation || null,
+        paymentMethod: data.paymentMethod || null,
     };
     addIncome(submissionData);
     form.reset({ date: new Date(), amount: 0, distance: 0, platform: undefined, salikFee: 0, airportFee: 0, bookingFee: 0, commission: 0, fuelCost: 0, pickupLocation: undefined, paymentMethod: undefined });
@@ -231,25 +258,26 @@ export default function AddIncomeDialog() {
             </div>
           </div>
           
-          {platform === 'bolt' && (
+          {platform === 'bolt' ? (
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                     <Label htmlFor="bookingFee">Booking Fee</Label>
-                    <Input id="bookingFee" type="number" step="0.01" placeholder="10.00" {...form.register('bookingFee')} />
+                    <Input id="bookingFee" type="number" step="0.01" placeholder="10.00" {...form.register('bookingFee')} readOnly={!isBookingFeeManual} />
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="commission">Bolt Commission Fee</Label>
                     <Input id="commission" type="number" step="0.01" placeholder="5.00" {...form.register('commission')} readOnly/>
                 </div>
             </div>
+          ): (
+            isAirportSelected && (
+              <div className="space-y-2">
+                  <Label htmlFor="airportFee">Airport Fee</Label>
+                  <Input id="airportFee" type="number" step="0.01" placeholder="20.00" {...form.register('airportFee')} readOnly />
+              </div>
+          )
           )}
 
-          {isAirportSelected && (
-             <div className="space-y-2">
-                <Label htmlFor="airportFee">Airport Fee</Label>
-                <Input id="airportFee" type="number" step="0.01" placeholder="20.00" {...form.register('airportFee')} readOnly />
-            </div>
-          )}
 
           <div className="grid grid-cols-1 gap-4">
              <div className="space-y-2">
