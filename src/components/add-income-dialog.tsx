@@ -90,6 +90,16 @@ export default function AddIncomeDialog({ income }: { income?: Income }) {
   const netIncome = (watchedValues.amount || 0) - (watchedValues.salikFee || 0) - (watchedValues.airportFee || 0) - (watchedValues.bookingFee || 0) - (watchedValues.commission || 0) - (watchedValues.fuelCost || 0);
 
   useEffect(() => {
+    if (isEditing && income) {
+      form.reset({
+        ...income,
+        date: new Date(income.date),
+      });
+    }
+  }, [isEditing, income, form, open]);
+
+
+  useEffect(() => {
     if (platform === 'bolt') {
         const isAirport = pickupLocation === 'airport_t1' || pickupLocation === 'airport_t2' || pickupLocation === 'airport_t3';
         const isSpecialLocation = pickupLocation === 'dubai_mall' || pickupLocation === 'global_village' || pickupLocation === 'atlantis_the_palm';
@@ -148,13 +158,12 @@ export default function AddIncomeDialog({ income }: { income?: Income }) {
   const onSubmit = (data: IncomeFormValues) => {
     const submissionData = {
         ...data,
-        id: income?.id || '',
         date: data.date.toISOString(),
         pickupLocation: data.pickupLocation || null,
         paymentMethod: data.paymentMethod || null,
     };
-    if (isEditing) {
-        updateIncome(submissionData.id, submissionData);
+    if (isEditing && income) {
+        updateIncome(income.id, submissionData);
     } else {
         addIncome(submissionData);
     }
